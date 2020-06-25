@@ -1,0 +1,153 @@
+import sys
+sys.path.append('/home/ehsan/dev/newshub')
+sys.path.append('/root/dev/newshub')
+from publics import db, PrintException
+from datetime import datetime
+col_news = db()['news']
+col_sources = db()['sources']
+col_source_links = db()['source_links']
+col_engine_instances = db()['engine_instances']
+col_error_logs = db()['error_logs']
+
+# def log_stat(type, ):
+# error_count = 0
+# exit()
+def create_md5(string):
+    import hashlib
+    hash_object = hashlib.md5(string.encode())
+    return hash_object.hexdigest()
+
+
+def log_error(type, page_url, selector, data, error, source_id, source_link_id, engine_instance_id):
+    try:
+        global error_count
+        error_count += 1
+        # print('Log created')
+        # print(error)
+        col_error_logs.insert({
+            'engine_instance_id': str(engine_instance_id),
+            'type': type,
+            'source_id': source_id,
+            'source_link_id': source_link_id,
+            'page_url': page_url,
+            'selector': selector,
+            'data': data,
+            'date': datetime.now(),
+            'error': error,
+        })
+    except:
+        PrintException()
+        print('LOG PRODUCED LOG!')
+
+def get_page(url):
+    import requests
+    from bs4 import BeautifulSoup
+    result = requests.get(url, verify=False)
+    return BeautifulSoup(result.text, 'html.parser')
+
+
+def run(engine_instance_id):
+    global link_count
+    global new_contents
+    link_count = 0
+    for source in col_sources.find():
+        # source_links = col_source_links.find({'source_id': str(source['_id'])})
+        # print(source_links.count())
+        for source_link in col_source_links.find({'source_id': str(source['_id'])}):
+            try:
+                link_count += 1
+                html = get_page(source_link['url'])
+                for item in html.select(source_link['box']):
+                    if col_news.count({'url': source_link['base_url'] + item.select(source_link['link'])[0]['href']}) == 0:
+                        try:
+                            url = source_link['base_url'] + item.select(source_link['link'])[0]['href']
+                        except:
+                            url = ''
+                            log_error(type='read_url', page_url=source_link['url'], selector='', data={},
+                                      error=PrintException(), source_id=str(source['_id']), source_link_id=str(source_link['_id']), engine_instance_id=engine_instance_id)
+                        try:
+                            # source['title'] = 'sdfhjk'
+                            title = item.select(source_link['title'])[0].text
+                        except:
+                            title = ''
+                            # print(source)
+                            # print(source['title'])
+                            log_error(type='extract_title', page_url=source_link['url'], selector=source_link['title'], data={}, error=PrintException(), source_id=str(source['_id']), source_link_id=str(source_link['_id']), engine_instance_id=engine_instance_id)
+                        try:
+                            summary = item.select(source_link['summary'])[0].text
+                        except:
+                            summary = ''
+                            log_error(type='extract_summary', page_url=source_link['url'], selector=source_link['summary'], data={}, error=PrintException(), source_id=str(source['_id']), source_link_id=str(source_link['_id']), engine_instance_id=engine_instance_id)
+                        try:
+                            date = item.select(source_link['date'])[0].text
+                        except:
+                            date = ''
+                            log_error(type='extract_date', page_url=source_link['url'], selector=source_link['date'], data={}, error=PrintException(), source_id=str(source['_id']), source_link_id=str(source_link['_id']), engine_instance_id=engine_instance_id)
+                        try:
+                            selected = item.select(source_link['image'])
+                            image = selected[0]['src'] if len(selected) > 0 else ''
+                        except:
+                            # print('FUCK?')
+                            image = ''
+                            log_error(type='extract_image', page_url=source_link['url'], selector=source_link['image'],
+                                      data={}, error=PrintException(), source_id=str(source['_id']), source_link_id=str(source_link['_id']), engine_instance_id=engine_instance_id)
+
+                        url_hash = create_md5(url)
+                        new_contents += 1
+                        if col_news.count({'url_hash': url_hash}) == 0:
+                            col_news.insert({
+                                'source_id': str(source['_id']),
+                                'source_link_id': str(source_link['_id']),
+                                'source_name': source['name'],
+                                'create_date': datetime.now(),
+                                'last_update': datetime.now(),
+                                'url': url,
+                                'url_hash': url_hash,
+                                'title': title,
+                                'summary': summary,
+                                'date': date,
+                                'source_url': source_link['url'],
+                                'status': 'summary',
+                                'image': image,
+                                'text_selector': source_link['text'],
+                                'text': '',
+                                'html': '',
+                            })
+            except:
+                log_error(type='read_url', page_url=source_link['url'], selector='', data={}, error=PrintException(),
+                          source_id=str(source['_id']), source_link_id=str(source_link['_id']), engine_instance_id=engine_instance_id)
+# def log_error(type, page_url, selector, data, error, source_id, source_link_id, engine_instance_id):
+start = datetime.now()
+engine_instance_id = col_engine_instances.insert({
+    'type': 'link',
+    'start_date': start,
+    'duration': -1,
+    'source_links': -1,
+    'errors': -1,
+    'new_contents': -1,
+    # 'date': datetime.now(),
+    # 'error': error,
+})
+
+# global error_count
+error_count = 0
+# global new_contents
+new_contents = 0
+# if 'error_count' not in globals():
+#     global error_count
+#     error_count = 0
+# if 'new_contents' not in globals():
+#     global new_contents
+#     new_contents = 0
+
+run(engine_instance_id=engine_instance_id)
+duration = (datetime.now() - start).total_seconds()
+
+print(col_engine_instances.update_one({'_id': engine_instance_id}, {'$set': {
+    'duration': duration,
+    'errors': error_count,
+    'source_links': link_count,
+    'new_contents': new_contents
+}}).raw_result)
+print(duration)
+

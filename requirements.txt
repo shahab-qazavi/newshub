@@ -1,0 +1,17 @@
+beautifulsoup4==4.8.2
+certifi==2019.11.28
+chardet==3.0.4
+elasticsearch==7.7.0
+idna==2.8
+pipenv==2018.11.26
+PyJWT==1.7.1
+pymongo==3.10.1
+python-crontab==2.4.0
+python-dateutil==2.8.1
+requests==2.22.0
+six==1.14.0
+soupsieve==1.9.5
+tornado==6.0.3
+urllib3==1.25.8
+virtualenv==16.7.7
+virtualenv-clone==0.5.3

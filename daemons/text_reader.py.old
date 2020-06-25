@@ -1,0 +1,156 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import sys
+sys.path.append('/home/ehsan/dev/newshub')
+sys.path.append('/root/dev/newshub')
+import requests
+from bs4 import BeautifulSoup
+from publics import db, es, PrintException
+from datetime import datetime
+from bson import ObjectId
+
+col_news = db()['news']
+# col_engine_logs = db()['engine_logs']
+col_engine_instances = db()['engine_instances']
+col_error_logs = db()['error_logs']
+# print(len(sys.argv))
+# print()
+# exit()
+news_id = ''
+if len(sys.argv) > 1:
+    news_id = sys.argv[1]
+print(news_id)
+
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+
+def log(type, page_url, selector, data, error, source_id, engine_instance_id):
+    try:
+        global error_count
+        error_count += 1
+        print('Log created')
+        # print(error)
+        col_error_logs.insert({
+            'engine_instance_id': str(engine_instance_id),
+            'type': type,
+            'source_id': source_id,
+            'page_url': page_url,
+            'selector': selector,
+            'data': data,
+            'date': datetime.now(),
+            'error': error,
+        })
+    except:
+        PrintException()
+
+
+def run(engine_instance_id):
+    print('lllllllllllllllllllllllllllllllll')
+    # print(news_id)
+    col_source_links = db()['source_links']
+    if news_id == '':
+        news_list = col_news.find({'status': 'summary'})
+    else:
+        news_list = col_news.find({'_id': ObjectId(news_id)})
+    # source_links = news_list.count()
+    print('COUNT IS:')
+    print(news_list.count())
+    for news in news_list:
+        try:
+            # print(news)
+            # print(news['source_id'])
+            # print(source_link_info[''])
+            result = requests.get(news['url'], verify=False)
+            html = BeautifulSoup(result.text, 'html.parser')
+            try:
+                # print(news)
+                news_html = html.select(news['text_selector'])[0]
+                status = 'text'
+
+                source_link_info = col_source_links.find_one({'_id': ObjectId(news['source_link_id'])})
+                with open("temp.html", "w") as file:
+                    file.write(str(news_html))
+                if 'exclude' in source_link_info:
+                    # print(source_link_info['exclude'])
+                    # print(news_html)
+                    # print(news_html(source_link_info['exclude']))
+                    # print(news_html("nav"))
+                    # news_html.select("div").decompose()
+                    for exclude in source_link_info['exclude']:
+                    # for exclude in ['#kir']:
+                    # for exclude in [source_link_info['exclude'][0]]:
+                    #     print("===========================")
+                    #     print(exclude)
+                        for ex in news_html.select(exclude):
+                            # print(ex)
+                            ex.decompose()
+                    # print(news_html.select(source_link_info['exclude']))
+                    # for script in news_html(source_link_info['exclude']):  # remove all javascript and stylesheet code
+                    #     print('llllllllllllllllllllllll')
+                    #     script.extract()
+                with open("tempdec.html", "w") as file:
+                    file.write(str(news_html))
+
+
+            except:
+                news_html = ''
+                status = 'error_text'
+                log(type='read_text', page_url=news['url'], selector=news['text_selector'], data={},
+                    error=PrintException(), engine_instance_id=engine_instance_id, source_id=news['source_id'])
+            # news_html.ext
+            # print(1)
+            # print(type(news_html))
+            # print(news_html[:100])
+            # news_html = news_html.text.replace('\n', 'kir')
+            # print(3)
+            # print(type(news_html))
+            # print(str(news_html))
+            # for script in news_html(["img", "style"]):  # remove all javascript and stylesheet code
+            #     script.extract()
+
+            news_text = news_html.text
+            col_news.update_one({'_id': news['_id']}, {'$set': {
+                'status': status,
+                'text': news_text,
+                'html': str(news_html),
+            }})
+            news['mongo_id'] = str(news['_id'])
+            del news['_id']
+            news['status'] = status
+            news['text'] = news_text
+            news['html'] = str(news_html)
+            print('Going to index...')
+            print(es().index(index='newshub', doc_type='news', body=news))
+
+        except:
+            log(type='read_url', page_url=news['url'], selector='', data={}, error=PrintException(),
+                engine_instance_id=engine_instance_id, source_id=news['source_id'])
+        # break
+
+
+start = datetime.now()
+source_links = 0
+engine_instance_id = col_engine_instances.insert_one({
+    'type': 'text',
+    'start_date': start,
+    'duration': -1,
+    'source_links': -1,
+    'errors': -1,
+    'new_contents': -1,
+})
+
+error_count = 0
+new_contents = 0
+
+run(engine_instance_id=engine_instance_id)
+duration = (datetime.now() - start).total_seconds()
+
+# print(col_engine_instances.update_one({'_id': engine_instance_id}, {'$set': {
+#     'duration': duration,
+#     'errors': error_count,
+#     'source_links': source_links,
+#     'new_contents': source_links
+# }}).raw_result)
+print(duration)
+
