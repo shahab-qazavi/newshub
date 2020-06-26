@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
-sys.path.append('/home/oem/dev/newshub')
+sys.path.append('/home/shahab/dev/newshub')
 sys.path.append('/root/dev/newshub')
 from publics import db, PrintException
 from datetime import datetime
@@ -46,11 +46,15 @@ def log_error(type, page_url, selector, data, error, source_id, source_link_id, 
         PrintException()
         print('LOG PRODUCED LOG!')
 
+
 def get_page(url):
     import requests
     from bs4 import BeautifulSoup
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-    result = requests.get(url, headers, verify=False)
+    if 'mehrnews' not in url:
+        result = requests.get(url, headers, verify=False)
+    elif 'mehrnews' in url:
+        result = requests.get(url, verify=False)
     # print('111111111111111111111111111111111111111111')
     # print(result.status_code)
     # print(url)
@@ -60,47 +64,27 @@ def get_page(url):
     return BeautifulSoup(result.text, 'html.parser')
 
 
-
 def do_work(item_info):
     # print('Working')
     source_link = item_info['source_link']
     source = item_info['source']
 
     try:
-
-        # if 'mehrnews' in source_link['url']:
-        #
-        #     print('===========================================')
-        #     print(source_link)
-        #     print('===========================================')
-        #     if 'category_id' in source_link:
-        #         print(source_link['category_id'])
-
         global link_count
         global new_contents
         link_count += 1
-
         html = get_page(source_link['url'])
-        # if 'mehrnews' in source_link['url']:
-        #     print('htmlllll')
-
         for item in html.select(source_link['box']):
+            # print('for')
             if 'mehrnews' in source_link['url']:
                 print('rafte to for')
 
             href = item.select(source_link['link'])[0]['href']
             if href[:2] == '..': href = href.replace('..', '')
             # if col_news.count_documents({'url': source_link['base_url'] + item.select(source_link['link'])[0]['href']}) == 0:
-            if 'mehrnews' in source_link['url']:
-                print('az koskalak bazie select daromad')
             if col_news.count_documents({'url': source_link['base_url'] + href}) == 0:
                 try:
-
                     url = source_link['base_url'] + href
-                    if 'mehrnews' in source_link['url']:
-                        print('******************************')
-                        print(url)
-
                 except:
                     PrintException()
                     url = ''
@@ -145,19 +129,6 @@ def do_work(item_info):
 
                 url_hash = create_md5(url)
                 new_contents += 1
-                if 'mehrnews' in source_link['url']:
-                    # print('+*+*+*+*+*+*+*+*+*+*+*+*+*++**++*+*+*+*+')
-                    # print('+*+*+*+*+*+*+*+*+*+*+*+*+*++**++*+*+*+*+')
-                    # print(source_link['url'])
-                    if 'category_id' in source_link:
-                        print(source_link['category_id'])
-                    else:
-                        print('---------------------------------------------')
-                        print(source_link)
-                        print('---------------------------------------------')
-                        print('hich category id kire khari nist')
-                    # print('+*+*+*+*+*+*+*+*+*+*+*+*+*++**++*+*+*+*+')
-                    # print('+*+*+*+*+*+*+*+*+*+*+*+*+*++**++*+*+*+*+')
                 if col_news.count_documents({'url_hash': url_hash}) == 0:
                     try:
                         col_news.insert_one({
@@ -181,10 +152,6 @@ def do_work(item_info):
                             'html': '',
                         })
                     except Exception as e:
-                        print('-=------------=-===--------------------')
-                        print('nashoooooooood')
-                        print(source_link['url'])
-                        print('-=------------=-===--------------------')
                         PrintException()
     except:
         PrintException()
