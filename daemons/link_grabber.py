@@ -53,7 +53,7 @@ def get_page(url):
     from bs4 import BeautifulSoup
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
     if 'mehrnews' not in url:
-        result = requests.get(url, headers, verify=False)
+        result = requests.get(url, headers=headers, verify=False)
     elif 'mehrnews' in url:
         result = requests.get(url, verify=False)
     if 'econews' in url:
