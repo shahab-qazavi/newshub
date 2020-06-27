@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+print('KOOOOOOOOOOOOOOOOOOOOON')
 import sys
-sys.path.append('/home/shahab/dev/newshub')
+sys.path.append('/home/ehsan/dev/newshub')
 sys.path.append('/root/dev/newshub')
 import requests
 from bs4 import BeautifulSoup

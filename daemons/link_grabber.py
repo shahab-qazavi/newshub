@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
-sys.path.append('/home/shahab/dev/newshub')
+sys.path.append('/home/oem/dev/newshub')
 sys.path.append('/root/dev/newshub')
 from publics import db, PrintException
 from datetime import datetime
@@ -18,6 +18,7 @@ q = Queue()
 thread_count = 10
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 
 def create_md5(string):
     import hashlib
@@ -55,9 +56,8 @@ def get_page(url):
         result = requests.get(url, headers, verify=False)
     elif 'mehrnews' in url:
         result = requests.get(url, verify=False)
-    # print('111111111111111111111111111111111111111111')
-    # print(result.status_code)
-    # print(url)
+    if 'econews' in url:
+        print(result)
     f = open('temp.html', 'w')
     f.write(result.text)
     f.close()
@@ -70,21 +70,27 @@ def do_work(item_info):
     source = item_info['source']
 
     try:
+
         global link_count
         global new_contents
         link_count += 1
-        html = get_page(source_link['url'])
-        for item in html.select(source_link['box']):
-            # print('for')
-            if 'mehrnews' in source_link['url']:
-                print('rafte to for')
 
-            href = item.select(source_link['link'])[0]['href']
+        html = get_page(source_link['url'])
+
+        for item in html.select(source_link['box']):
+            href = item.select(source_link['link'])
+            if len(href) != 0:
+                href = href[0]['href']
+            if 'https://ana.press' in source_link['url']:
+                href = 'fa/' + item['href']
+            # href = item.select(source_link['link'])[0]['href']
             if href[:2] == '..': href = href.replace('..', '')
             # if col_news.count_documents({'url': source_link['base_url'] + item.select(source_link['link'])[0]['href']}) == 0:
+
             if col_news.count_documents({'url': source_link['base_url'] + href}) == 0:
                 try:
                     url = source_link['base_url'] + href
+
                 except:
                     PrintException()
                     url = ''
@@ -120,8 +126,15 @@ def do_work(item_info):
                 try:
                     selected = item.select(source_link['image'])
                     image = selected[0]['src'] if len(selected) > 0 else ''
+                    if source_link['url'] not in image:
+                        if image[0] != '/': image = '/'+image
+                        image = source_link['url']+image
+
+
                 except:
                     PrintException()
+                    # print('----------------------------')
+                    # print(source_link['url'])
                     image = ''
                     log_error(type='extract_image', page_url=source_link['url'], selector=source_link['image'],
                               data={}, error=PrintException(), source_id=str(source['_id']),
@@ -129,6 +142,7 @@ def do_work(item_info):
 
                 url_hash = create_md5(url)
                 new_contents += 1
+
                 if col_news.count_documents({'url_hash': url_hash}) == 0:
                     try:
                         col_news.insert_one({

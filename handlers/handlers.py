@@ -152,8 +152,13 @@ class TestCrawl(BaseHandler):
                                     date = item.select(source_link_info['date'])[0].text
                                 except:
                                     date = ''
+                                href = item.select(source_link_info['link'])
+                                if len(href) != 0:
+                                    href = href[0]['href']
+                                if 'https://ana.press/' in source_link_info['url']:
+                                    href = 'fa/'+item['href']
                                 print(col_test_news.insert({
-                                    'url': source_link_info['base_url'] + item.select(source_link_info['link'])[0]['href'],
+                                    'url': source_link_info['base_url'] + href,
                                     'title': item.select(source_link_info['title'])[0].text,
                                     'summary': item.select(source_link_info['summary'])[0].text,
                                     'date': date,
