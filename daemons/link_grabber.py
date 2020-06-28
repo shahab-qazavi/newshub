@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
-sys.path.append('/home/oem/dev/newshub')
+sys.path.append('/home/shahab/dev/newshub')
 sys.path.append('/root/dev/newshub')
 from publics import db, PrintException
 from datetime import datetime
@@ -77,9 +77,7 @@ def do_work(item_info):
         link_count += 1
 
         html = get_page(source_link['url'])
-        # print('---------------------------')
-        # print('---------------------------')
-        # print(html)
+
         print(link_count)
         for item in html.select(source_link['box']):
             try:
@@ -116,9 +114,12 @@ def do_work(item_info):
                 try:
 
                     title = item.select(source_link['title'])[0].text
+
                 except:
                     PrintException()
                     title = ''
+                    if 'tabnak' in source_link['base_url']:
+                        title = item.select('h3 > a')[0].text.strip()
 
                     log_error(type='extract_title', page_url=source_link['url'], selector=source_link['title'], data={},
                               error=PrintException(), source_id=str(source['_id']),
@@ -141,10 +142,17 @@ def do_work(item_info):
                               source_link_id=str(source_link['_id']), engine_instance_id=engine_instance_id, module='link_grabber')
                 try:
                     selected = item.select(source_link['image'])
-                    image = selected[0]['src'] if len(selected) > 0 else ''
+                    if 'iranjib' in source_link['base_url']:
+                        image = selected[0]['data-src'] if len(selected) > 0 else ''
+                    else:
+                        image = selected[0]['src'] if len(selected) > 0 else ''
                     if 'http' not in image:
                         if image[0] != '/': image = '/'+image
-                        image = source_link['base_url']+image
+                        url_list = ['http://ostanha.tabnak.ir/']
+                        if source_link['url'] in url_list:
+                            image = source_link['url'] + image
+                        else:
+                            image = source_link['base_url']+image
                 except:
                     PrintException()
                     image = ''
