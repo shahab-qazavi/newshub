@@ -6,11 +6,11 @@ sys.path.append('/root/dev/newshub')
 from publics import db, PrintException
 from datetime import datetime
 from bson import ObjectId
-col_news = db()['news_test']
+col_news = db()['news']
 col_sources = db()['sources']
 col_source_links = db()['source_links']
-col_engine_instances = db()['engine_instances_test']
-col_error_logs = db()['error_logs_test']
+col_engine_instances = db()['engine_instances']
+col_error_logs = db()['error_logs']
 link_count = 0
 from queue import Queue
 import threading
@@ -53,14 +53,15 @@ def get_page(url):
     from bs4 import BeautifulSoup
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
     if 'mehrnews' not in url:
-        result = requests.get(url, headers, verify=False)
+        result = requests.get(url, headers=headers, verify=False)
     elif 'mehrnews' in url:
         result = requests.get(url, verify=False)
-    if 'econews' in url:
-        print(result)
+    # if 'econews' in url:
+    #     print(result)
     f = open('temp.html', 'w')
     f.write(result.text)
     f.close()
+
     return BeautifulSoup(result.text, 'html.parser')
 
 
@@ -76,20 +77,35 @@ def do_work(item_info):
         link_count += 1
 
         html = get_page(source_link['url'])
-
+        # print('---------------------------')
+        # print('---------------------------')
+        # print(html)
+        print(link_count)
         for item in html.select(source_link['box']):
-            href = item.select(source_link['link'])
-            if len(href) != 0:
-                href = href[0]['href']
-            if 'https://ana.press' in source_link['url']:
-                href = 'fa/' + item['href']
+            try:
+                href = item.select(source_link['link'])[0]['href']
+            except:
+                PrintException()
+                href =''
+                log_error(type='extract_link', page_url=source_link['url'], selector=source_link['link'], data={},
+                          error=PrintException(), source_id=str(source['_id']),
+                          source_link_id=str(source_link['_id']), engine_instance_id=engine_instance_id,
+                          module='link_grabber')
+
+            if 'https://ana.ir/fa/allstories' in source_link['url']:
+                href = item['href']
             # href = item.select(source_link['link'])[0]['href']
             if href[:2] == '..': href = href.replace('..', '')
             # if col_news.count_documents({'url': source_link['base_url'] + item.select(source_link['link'])[0]['href']}) == 0:
 
             if col_news.count_documents({'url': source_link['base_url'] + href}) == 0:
                 try:
-                    url = source_link['base_url'] + href
+                    if source_link['base_url'] not in href:
+                        url = source_link['base_url'] + href
+                    else:
+                        url = href
+                    if 'https://ana.ir/fa/allstories' in source_link['url']:
+                        url = 'https://ana.press/'+href
 
                 except:
                     PrintException()
@@ -126,15 +142,11 @@ def do_work(item_info):
                 try:
                     selected = item.select(source_link['image'])
                     image = selected[0]['src'] if len(selected) > 0 else ''
-                    if source_link['url'] not in image:
+                    if 'http' not in image:
                         if image[0] != '/': image = '/'+image
-                        image = source_link['url']+image
-
-
+                        image = source_link['base_url']+image
                 except:
                     PrintException()
-                    # print('----------------------------')
-                    # print(source_link['url'])
                     image = ''
                     log_error(type='extract_image', page_url=source_link['url'], selector=source_link['image'],
                               data={}, error=PrintException(), source_id=str(source['_id']),

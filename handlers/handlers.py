@@ -137,7 +137,8 @@ class TestCrawl(BaseHandler):
                     }
                 else:
                     print('PLAN B')
-                    result = requests.get(source_link_info['url'], verify=False)
+                    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+                    result = requests.get(source_link_info['url'], headers=headers, verify=False)
                     print(result)
                     html = BeautifulSoup(result.text, 'html.parser')
                     col_test_news.drop()
