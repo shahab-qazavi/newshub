@@ -52,9 +52,9 @@ def get_page(url):
     import requests
     from bs4 import BeautifulSoup
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-    if 'mehrnews' not in url:
+    try:
         result = requests.get(url, headers=headers, verify=False)
-    elif 'mehrnews' in url:
+    except:
         result = requests.get(url, verify=False)
     # if 'econews' in url:
     #     print(result)
@@ -81,7 +81,10 @@ def do_work(item_info):
         print(link_count)
         for item in html.select(source_link['box']):
             try:
-                href = item.select(source_link['link'])[0]['href']
+                if source_link['link'] == '':
+                    href = item['href']
+                else:
+                    href = item.select(source_link['link'])[0]['href']
             except:
                 PrintException()
                 href =''
@@ -90,8 +93,6 @@ def do_work(item_info):
                           source_link_id=str(source_link['_id']), engine_instance_id=engine_instance_id,
                           module='link_grabber')
 
-            if 'https://ana.ir/fa/allstories' in source_link['url']:
-                href = item['href']
             # href = item.select(source_link['link'])[0]['href']
             if href[:2] == '..': href = href.replace('..', '')
             # if col_news.count_documents({'url': source_link['base_url'] + item.select(source_link['link'])[0]['href']}) == 0:
@@ -103,8 +104,6 @@ def do_work(item_info):
                         url = source_link['base_url'] + href
                     else:
                         url = href
-                    if 'https://ana.ir/fa/allstories' in source_link['url']:
-                        url = 'https://ana.press/'+href
 
                 except:
                     PrintException()
