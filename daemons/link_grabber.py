@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
-sys.path.append('/home/shahab/dev/newshub')
+sys.path.append('/home/oem/dev/newshub')
 sys.path.append('/root/dev/newshub')
 from publics import db, PrintException
 from datetime import datetime
@@ -98,6 +98,7 @@ def do_work(item_info):
 
             if col_news.count_documents({'url': source_link['base_url'] + href}) == 0:
                 try:
+
                     if source_link['base_url'] not in href:
                         url = source_link['base_url'] + href
                     else:
@@ -112,8 +113,9 @@ def do_work(item_info):
                               error=PrintException(), source_id=str(source['_id']),
                               source_link_id=str(source_link['_id']), engine_instance_id=engine_instance_id, module='link_grabber')
                 try:
-
-                    title = item.select(source_link['title'])[0].text
+                    if source_link['title'] != '':
+                        title = item.select(source_link['title'])
+                        title = title[0].text.strip() if len(title) != 0 else ''
 
                 except:
                     PrintException()
@@ -125,7 +127,9 @@ def do_work(item_info):
                               error=PrintException(), source_id=str(source['_id']),
                               source_link_id=str(source_link['_id']), engine_instance_id=engine_instance_id, module='link_grabber')
                 try:
-                    summary = item.select(source_link['summary'])[0].text
+                    if source_link['summary'] != '':
+                        summary = item.select(source_link['summary'])
+                        summary = summary[0].text.strip() if len(summary) != 0 else ''
                 except:
                     PrintException()
                     summary = ''
@@ -133,7 +137,10 @@ def do_work(item_info):
                               data={}, error=PrintException(), source_id=str(source['_id']),
                               source_link_id=str(source_link['_id']), engine_instance_id=engine_instance_id, module='link_grabber')
                 try:
-                    date = item.select(source_link['date'])[0].text
+                    if source_link['date'] != '':
+                        date = item.select(source_link['date'])
+                        date = date[0].text.strip() if len(date) != 0 else ''
+
                 except:
                     PrintException()
                     date = ''
@@ -141,18 +148,19 @@ def do_work(item_info):
                               error=PrintException(), source_id=str(source['_id']),
                               source_link_id=str(source_link['_id']), engine_instance_id=engine_instance_id, module='link_grabber')
                 try:
-                    selected = item.select(source_link['image'])
-                    if 'iranjib' in source_link['base_url']:
-                        image = selected[0]['data-src'] if len(selected) > 0 else ''
-                    else:
-                        image = selected[0]['src'] if len(selected) > 0 else ''
-                    if 'http' not in image:
-                        if image[0] != '/': image = '/'+image
-                        url_list = ['http://ostanha.tabnak.ir/']
-                        if source_link['url'] in url_list:
-                            image = source_link['url'] + image
-                        else:
-                            image = source_link['base_url']+image
+                    if source_link['image'] != '':
+                        selected = item.select(source_link['image'])
+                        try:
+                            image = selected[0]['data-src'] if len(selected) != 0 else ''
+                        except:
+                            image = selected[0]['src'] if len(selected) != 0 else ''
+                        if 'http' not in image:
+                            if image != '' and image[0] != '/': image = '/'+image
+                            url_list = ['http://ostanha.tabnak.ir/']
+                            if source_link['url'] in url_list:
+                                image = source_link['url'] + image
+                            else:
+                                image = source_link['base_url']+image
                 except:
                     PrintException()
                     image = ''
@@ -210,7 +218,7 @@ def run():
         t.daemon = True  # thread dies when main thread (only non-daemon thread) exits.
         t.start()
     if source_id == '':
-        sources = col_sources.find({"enabled" : True})
+        sources = col_sources.find({"enabled": True})
     else:
         sources = col_sources.find({"_id": ObjectId(source_id)})
     # print('sources.count()')
