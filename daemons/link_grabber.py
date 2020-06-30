@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+__author__ = 'Shahab Qazavi & Ehsan Shirzadi'
+
 import sys
 sys.path.append('/home/oem/dev/newshub')
 sys.path.append('/root/dev/newshub')
@@ -30,8 +30,6 @@ def log_error(type, page_url, selector, data, error, source_id, source_link_id, 
     try:
         global error_count
         error_count += 1
-        # print('Log created')
-        # print(error)
         col_error_logs.insert_one({
             'engine_instance_id': str(engine_instance_id),
             'type': type,
@@ -56,8 +54,6 @@ def get_page(url):
         result = requests.get(url, headers=headers, verify=False)
     except:
         result = requests.get(url, verify=False)
-    # if 'econews' in url:
-    #     print(result)
     f = open('temp.html', 'w')
     f.write(result.text)
     f.close()
@@ -66,7 +62,6 @@ def get_page(url):
 
 
 def do_work(item_info):
-    # print('Working')
     source_link = item_info['source_link']
     source = item_info['source']
 
@@ -84,8 +79,11 @@ def do_work(item_info):
                 if source_link['link'] == '':
                     href = item['href']
                 else:
-                    href = item.select(source_link['link'])[0]['href']
-            except:
+                    href = item.select(source_link['link'])
+                    href = href[0]['href'] if len(href) != 0 else ''
+
+            except Exception as e:
+                print(e)
                 PrintException()
                 href =''
                 log_error(type='extract_link', page_url=source_link['url'], selector=source_link['link'], data={},
@@ -93,18 +91,15 @@ def do_work(item_info):
                           source_link_id=str(source_link['_id']), engine_instance_id=engine_instance_id,
                           module='link_grabber')
 
-            # href = item.select(source_link['link'])[0]['href']
             if href[:2] == '..': href = href.replace('..', '')
             # if col_news.count_documents({'url': source_link['base_url'] + item.select(source_link['link'])[0]['href']}) == 0:
-
-            if col_news.count_documents({'url': source_link['base_url'] + href}) == 0:
+            col_counter = col_news.count_documents({'url': source_link['base_url'] + href})
+            if col_counter == 0:
                 try:
-
                     if source_link['base_url'] not in href:
                         url = source_link['base_url'] + href
                     else:
                         url = href
-
                 except:
                     PrintException()
                     url = ''
@@ -115,20 +110,27 @@ def do_work(item_info):
                     if source_link['title'] != '':
                         title = item.select(source_link['title'])
                         title = title[0].text.strip() if len(title) != 0 else ''
-
+                    else:
+                        title = ''
                 except:
-                    PrintException()
-                    title = ''
-                    if 'tabnak' in source_link['base_url']:
-                        title = item.select('h3 > a')[0].text.strip()
-
-                    log_error(type='extract_title', page_url=source_link['url'], selector=source_link['title'], data={},
-                              error=PrintException(), source_id=str(source['_id']),
-                              source_link_id=str(source_link['_id']), engine_instance_id=engine_instance_id, module='link_grabber')
+                    try:
+                        title = item.select('div.box_economic > h3 > a')[0].text.strip()
+                    except:
+                        try:
+                            title = item.select('div.box_economic > h1 > a')[0].text.strip()
+                        except Exception as e:
+                            print(e)
+                            PrintException()
+                            title = ''
+                            log_error(type='extract_title', page_url=source_link['url'], selector=source_link['title'], data={},
+                                      error=PrintException(), source_id=str(source['_id']),
+                                      source_link_id=str(source_link['_id']), engine_instance_id=engine_instance_id, module='link_grabber')
                 try:
                     if source_link['summary'] != '':
                         summary = item.select(source_link['summary'])
                         summary = summary[0].text.strip() if len(summary) != 0 else ''
+                    else:
+                        summary = ''
                 except:
                     PrintException()
                     summary = ''
@@ -139,7 +141,8 @@ def do_work(item_info):
                     if source_link['date'] != '':
                         date = item.select(source_link['date'])
                         date = date[0].text.strip() if len(date) != 0 else ''
-
+                    else:
+                        date = ''
                 except:
                     PrintException()
                     date = ''
@@ -155,11 +158,9 @@ def do_work(item_info):
                             image = selected[0]['src'] if len(selected) != 0 else ''
                         if 'http' not in image:
                             if image != '' and image[0] != '/': image = '/'+image
-                            url_list = ['http://ostanha.tabnak.ir/']
-                            if source_link['url'] in url_list:
-                                image = source_link['url'] + image
-                            else:
-                                image = source_link['base_url']+image
+                            image = source_link['base_url']+image
+                    else:
+                        image = ''
                 except:
                     PrintException()
                     image = ''
@@ -169,7 +170,6 @@ def do_work(item_info):
 
                 url_hash = create_md5(url)
                 new_contents += 1
-
                 if col_news.count_documents({'url_hash': url_hash}) == 0:
                     try:
                         col_news.insert_one({
@@ -193,9 +193,9 @@ def do_work(item_info):
                             'html': '',
                         })
                     except Exception as e:
-                        PrintException()
-    except:
-        PrintException()
+                        print(e)
+    except Exception as e:
+        print(e)
         log_error(type='read_url', page_url=source_link['url'], selector='', data={}, error=PrintException(),
                   source_id=str(source['_id']), source_link_id=str(source_link['_id']),
                   engine_instance_id=engine_instance_id, module='link_grabber')
@@ -209,10 +209,7 @@ def worker():
 
 
 def run():
-    # print('thread_count')
-    # print(thread_count)
     for i in range(thread_count):
-    # for i in range(10):
         t = threading.Thread(target=worker)
         t.daemon = True  # thread dies when main thread (only non-daemon thread) exits.
         t.start()
@@ -220,18 +217,12 @@ def run():
         sources = col_sources.find({"enabled": True})
     else:
         sources = col_sources.find({"_id": ObjectId(source_id)})
-    # print('sources.count()')
-    # print(sources.count())
     for source in sources:
-        # print(1)
         for source_link in col_source_links.find({'source_id': str(source['_id'])}):
-            # print(1)
             q.put({'source_link': source_link, 'source': source})
-        # break
     q.join()
 
 
-# def log_error(type, page_url, selector, data, error, source_id, source_link_id, engine_instance_id):
 start = datetime.now()
 engine_instance_id = str(col_engine_instances.insert_one({
     'type': 'link',
@@ -245,7 +236,6 @@ engine_instance_id = str(col_engine_instances.insert_one({
 error_count = 0
 new_contents = 0
 print(len(sys.argv))
-# print(sys.argv[0])
 source_id = ''
 if len(sys.argv) > 1:
     print(sys.argv[1])
