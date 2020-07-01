@@ -58,38 +58,43 @@ def do_work(item):
         del item['_id']
         headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
         result = requests.get(item['url'], headers=headers, verify=False)
-        html = BeautifulSoup(result.text, 'html.parser')
-        try:
-            news_html = html.select(item['text_selector'])
-            if len(news_html) != 0: news_html = news_html[0]
-            news_html = remove_hrefs(news_html)
+        status = ''
+        if result != '' or result is not None:
+            html = BeautifulSoup(result.text, 'html.parser')
+            try:
+                news_html = html.select(item['text_selector'])
+                if len(news_html) != 0: news_html = news_html[0]
+                news_html = remove_hrefs(news_html)
 
-            status = 'text'
-            source_link_info = col_source_links.find_one({'_id': ObjectId(item['source_link_id'])})
-            if 'exclude' in source_link_info:
-                for exclude in source_link_info['exclude']:
-                    for ex in news_html.select(exclude):
-                        ex.decompose()
-        except Exception as e:
-            news_html = ''
-            status = 'error_text'
-            log(type='read_text', page_url=item['url'], selector=item['text_selector'], data={},
-                error=PrintException(), engine_instance_id=engine_instance_id, source_id=item['source_id'])
-            col_news.update_one({'_id': ObjectId(item['mongo_id'])}, {'$set': {
-                'status': 'error',
-                'text': '',
-                'html': '',
-                'error': str(e),
-            }})
+                status = 'text'
+                source_link_info = col_source_links.find_one({'_id': ObjectId(item['source_link_id'])})
+                if 'exclude' in source_link_info:
+                    for exclude in source_link_info['exclude']:
+                        for ex in news_html.select(exclude):
+                            ex.decompose()
+            except Exception as e:
+                news_html = ''
+                status = 'error_text'
+                log(type='read_text', page_url=item['url'], selector=item['text_selector'], data={},
+                    error=PrintException(), engine_instance_id=engine_instance_id, source_id=item['source_id'])
+                col_news.update_one({'_id': ObjectId(item['mongo_id'])}, {'$set': {
+                    'status': 'error',
+                    'text': '',
+                    'html': '',
+                    'error': str(e),
+                }})
         if news_html is not None and news_html != '':
-            news_text = news_html.text
+            try:
+                news_text = news_html.text
+            except:
+                news_text = ''
             item['status'] = status
             item['text'] = news_text
             item['html'] = str(news_html)
             item['text_reader_id'] = engine_instance_id
-            print('+++++++++++++++++++++++++')
-            print(len(news_text))
-            print('+++++++++++++++++++++++++')
+            # print('+++++++++++++++++++++++++')
+            # print(len(news_text))
+            # print('+++++++++++++++++++++++++')
             es().index(index='newshub', doc_type='news', body=item)
             col_news.update_one({'_id': ObjectId(item['mongo_id'])}, {'$set': {
                 'status': status,
@@ -102,7 +107,7 @@ def worker():
     while True:
         item = q.get()
         do_work(item)
-        print(q.task_done())
+        q.task_done()
 
 
 def run():
@@ -121,6 +126,9 @@ def run():
         item['url'] = item['url'].decode('utf-8')
         q.put(item)
     q.join()
+    print('=====================')
+    print('end')
+    print('=====================')
 
 
 start = datetime.now()
