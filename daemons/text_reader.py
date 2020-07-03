@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
-sys.path.append('/home/oem/dev/newshub')
+sys.path.append('/home/shahab/dev/newshub')
 sys.path.append('/root/dev/newshub')
 import requests
 from bs4 import BeautifulSoup
@@ -44,7 +44,7 @@ def log(type, page_url, selector, data, error, source_id, engine_instance_id):
 
 
 def remove_hrefs(html):
-    for a in html.findAll('a'):
+    for a in html.find_all('a'):
         del a['href']
     return html
 
@@ -63,15 +63,22 @@ def do_work(item):
             html = BeautifulSoup(result.text, 'html.parser')
             try:
                 news_html = html.select(item['text_selector'])
-                if len(news_html) != 0: news_html = news_html[0]
-                news_html = remove_hrefs(news_html)
-
-                status = 'text'
-                source_link_info = col_source_links.find_one({'_id': ObjectId(item['source_link_id'])})
-                if 'exclude' in source_link_info:
-                    for exclude in source_link_info['exclude']:
-                        for ex in news_html.select(exclude):
-                            ex.decompose()
+                if len(news_html) > 0:
+                    news_html = news_html[0]
+                    try:
+                        news_html = remove_hrefs(news_html)
+                    except:
+                        pass
+                    status = 'text'
+                    source_link_info = col_source_links.find_one({'_id': ObjectId(item['source_link_id'])})
+                    if 'exclude' in source_link_info:
+                        for exclude in source_link_info['exclude']:
+                            for ex in news_html.select(exclude):
+                                ex.decompose()
+                else:
+                    status = 'Empty'
+                    log(type='read_text', page_url=item['url'], selector=item['text_selector'], data={},
+                        error='Empty', engine_instance_id=engine_instance_id, source_id=item['source_id'])
             except Exception as e:
                 news_html = ''
                 status = 'error_text'
@@ -83,18 +90,18 @@ def do_work(item):
                     'html': '',
                     'error': str(e),
                 }})
-        if news_html is not None and news_html != '':
+        if news_html is not None and news_html != '' and len(news_html) > 0:
             try:
                 news_text = news_html.text
             except:
                 news_text = ''
+                status = 'error_text'
+                log(type='read_text', page_url=item['url'], selector=item['text_selector'], data={},
+                    error=PrintException(), engine_instance_id=engine_instance_id, source_id=item['source_id'])
             item['status'] = status
             item['text'] = news_text
             item['html'] = str(news_html)
             item['text_reader_id'] = engine_instance_id
-            # print('+++++++++++++++++++++++++')
-            # print(len(news_text))
-            # print('+++++++++++++++++++++++++')
             es().index(index='newshub', doc_type='news', body=item)
             col_news.update_one({'_id': ObjectId(item['mongo_id'])}, {'$set': {
                 'status': status,
@@ -111,24 +118,23 @@ def worker():
 
 
 def run():
-    if news_id == '':
-        news_list = col_news.find({'status': 'summary'}).sort('create_date', -1)
-
-    else:
-        news_list = col_news.find({'_id': ObjectId(news_id)})
     for i in range(thread_count):
         t = threading.Thread(target=worker)
         t.daemon = True  # thread dies when main thread (only non-daemon thread) exits.
         t.start()
+
+    if news_id == '':
+        news_list = col_news.find({'status': 'summary'}).sort('create_date', -1)
+    else:
+        news_list = col_news.find({'_id': ObjectId(news_id)})
+    print('for aval tamom shod')
     for item in news_list:
         item['title'] = item['title'].decode('utf-8')
         item['summary'] = item['summary'].decode('utf-8')
         item['url'] = item['url'].decode('utf-8')
         q.put(item)
+    # q.task_done()
     q.join()
-    print('=====================')
-    print('end')
-    print('=====================')
 
 
 start = datetime.now()
