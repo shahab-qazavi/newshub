@@ -133,7 +133,6 @@ def run():
         item['summary'] = item['summary'].decode('utf-8')
         item['url'] = item['url'].decode('utf-8')
         q.put(item)
-    # q.task_done()
     q.join()
 
 

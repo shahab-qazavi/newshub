@@ -1,7 +1,7 @@
 __author__ = 'Shahab Qazavi & Ehsan Shirzadi'
 
 import sys
-sys.path.append('/home/oem/dev/newshub')
+sys.path.append('/home/shahab/dev/newshub')
 sys.path.append('/root/dev/newshub')
 from publics import db, PrintException
 from datetime import datetime
@@ -92,6 +92,7 @@ def do_work(item_info):
                           module='link_grabber')
 
             if href[:2] == '..': href = href.replace('..', '')
+
             # if col_news.count_documents({'url': source_link['base_url'] + item.select(source_link['link'])[0]['href']}) == 0:
             col_counter = col_news.count_documents({'url': source_link['base_url'] + href})
             if col_counter == 0:

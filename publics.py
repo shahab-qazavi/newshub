@@ -26,7 +26,7 @@ def PE():
 def es():
     from elasticsearch import Elasticsearch
     # return Elasticsearch('htps://5.63.9.73')
-    return Elasticsearch('htp://localhost')
+    return Elasticsearch('localhost')
 
 
 def set_db(name):
