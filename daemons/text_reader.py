@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from publics import db, es, PrintException
 from datetime import datetime
 from bson import ObjectId
-from queue import Queue
+from queue import Queue, Empty
 import threading
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -17,7 +17,6 @@ col_news = db()['news']
 col_engine_instances = db()['engine_instances']
 col_error_logs = db()['error_logs']
 col_source_links = db()['source_links']
-
 q = Queue()
 thread_count = 30
 count = 0
@@ -50,7 +49,7 @@ def remove_hrefs(html):
 
 def do_work(item):
         global count
-        count+=1
+        count += 1
         print(count)
         news_html = None
         item['mongo_id'] = str(item['_id'])
@@ -111,31 +110,33 @@ def do_work(item):
 
 def worker():
     while True:
-        item = q.get()
-        do_work(item)
+        try:
+            item = q.get()
+            do_work(item)
+        except Empty:
+            sys.exit(0)
         q.task_done()
         global count
         if count == col_news.estimated_document_count():
-            sys.exit()
+            sys.exit(0)
 
 
 def run():
     for i in range(thread_count):
-        t = threading.Thread(name='daemon', target=worker)
-        t.setDaemon(True)
+        t = threading.Thread(target=worker)
+        t.daemon = True  # thread dies when main thread (only non-daemon thread) exits.
         t.start()
-
+        t.killed = True
     if news_id == '':
         news_list = col_news.find({'status': 'summary'}).sort('create_date', -1)
     else:
         news_list = col_news.find({'_id': ObjectId(news_id)})
-    q.empty()
     for item in news_list:
         item['title'] = item['title'].decode('utf-8')
         item['summary'] = item['summary'].decode('utf-8')
         item['url'] = item['url'].decode('utf-8')
         q.put(item)
-    print('for dovom tamom shod')
+    running.set()
     q.join()
 
 
@@ -157,10 +158,9 @@ if len(sys.argv) > 1:
 run()
 duration = (datetime.now() - start).total_seconds()
 print(duration)
-
-col_engine_instances.update_one({'_id': ObjectId(engine_instance_id)}, {'$set': {
+print(col_engine_instances.update_one({'_id': ObjectId(engine_instance_id)}, {'$set': {
     'duration': duration,
     'errors': error_count,
-    'source_links': source_links,
+    'source_links': count,
     'new_contents': ''
-}})
+}}))

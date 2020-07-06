@@ -70,9 +70,7 @@ def do_work(item_info):
         global link_count
         global new_contents
         link_count += 1
-
         html = get_page(source_link['url'])
-
         print(link_count)
         for item in html.select(source_link['box']):
             try:
@@ -92,7 +90,7 @@ def do_work(item_info):
                           module='link_grabber')
 
             if href[:2] == '..': href = href.replace('..', '')
-
+            # if href != '' and href[0] != '/': href = '/'+href
             # if col_news.count_documents({'url': source_link['base_url'] + item.select(source_link['link'])[0]['href']}) == 0:
             col_counter = col_news.count_documents({'url': source_link['base_url'] + href})
             if col_counter == 0:
@@ -115,10 +113,10 @@ def do_work(item_info):
                         title = ''
                 except:
                     try:
-                        title = item.select('div.box_economic > h3 > a')[0].text.strip()
+                        title = item.select('div.box_economic > h3 > a')[0].text
                     except:
                         try:
-                            title = item.select('div.box_economic > h1 > a')[0].text.strip()
+                            title = item.select('div.box_economic > h1 > a')[0].text
                         except Exception as e:
                             print(e)
                             PrintException()
@@ -218,6 +216,7 @@ def run():
         sources = col_sources.find({"enabled": True})
     else:
         sources = col_sources.find({"_id": ObjectId(source_id)})
+    q.empty()
     for source in sources:
         for source_link in col_source_links.find({'source_id': str(source['_id'])}):
             q.put({'source_link': source_link, 'source': source})
