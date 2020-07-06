@@ -17,12 +17,11 @@ col_news = db()['news']
 col_engine_instances = db()['engine_instances']
 col_error_logs = db()['error_logs']
 col_source_links = db()['source_links']
-news_id = ''
-if len(sys.argv) > 1:
-    news_id = sys.argv[1]
+
 q = Queue()
 thread_count = 30
 count = 0
+running = threading.Event()
 
 
 def log(type, page_url, selector, data, error, source_id, engine_instance_id):
@@ -115,24 +114,28 @@ def worker():
         item = q.get()
         do_work(item)
         q.task_done()
+        global count
+        if count == col_news.estimated_document_count():
+            sys.exit()
 
 
 def run():
     for i in range(thread_count):
-        t = threading.Thread(target=worker)
-        t.daemon = True  # thread dies when main thread (only non-daemon thread) exits.
+        t = threading.Thread(name='daemon', target=worker)
+        t.setDaemon(True)
         t.start()
 
     if news_id == '':
         news_list = col_news.find({'status': 'summary'}).sort('create_date', -1)
     else:
         news_list = col_news.find({'_id': ObjectId(news_id)})
-    print('for aval tamom shod')
+    q.empty()
     for item in news_list:
         item['title'] = item['title'].decode('utf-8')
         item['summary'] = item['summary'].decode('utf-8')
         item['url'] = item['url'].decode('utf-8')
         q.put(item)
+    print('for dovom tamom shod')
     q.join()
 
 
@@ -148,6 +151,9 @@ engine_instance_id = str(col_engine_instances.insert_one({
 }).inserted_id)
 error_count = 0
 new_contents = 0
+news_id = ''
+if len(sys.argv) > 1:
+    news_id = sys.argv[1]
 run()
 duration = (datetime.now() - start).total_seconds()
 print(duration)
