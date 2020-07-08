@@ -163,4 +163,4 @@ print(col_engine_instances.update_one({'_id': ObjectId(engine_instance_id)}, {'$
     'errors': error_count,
     'source_links': count,
     'new_contents': ''
-}}))
+}}).raw_result)
