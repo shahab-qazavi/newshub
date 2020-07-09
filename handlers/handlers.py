@@ -108,7 +108,7 @@ class TestCrawl(BaseHandler):
         self.inputs = {
             'get': ['source_id', 'news_link']
         }
-        # self.tokenless = True
+        self.tokenless = True
 
     def before_get(self):
             try:
@@ -322,7 +322,7 @@ class News(BaseHandler):
         }
         self.inputs = {
         }
-        # self.tokenless = True
+        self.tokenless = True
 
     def after_get_one(self, document):
         document = self.prepare_item(document)
@@ -342,7 +342,7 @@ class ExtLogin(BaseHandler):
         }
         self.inputs = {
         }
-        # self.tokenless = True
+        self.tokenless = True
 
 
 class PremiumPackages(BaseHandler):
@@ -409,7 +409,7 @@ class Run(BaseHandler):
         self.inputs = {
             'get': ['type']
         }
-        # self.tokenless = True
+        self.tokenless = True
 
     def before_get(self):
             try:
@@ -455,7 +455,7 @@ class Home(BaseHandler):
         self.inputs = {
             'get': []
         }
-        # self.tokenless = True
+        self.tokenless = True
 
     def before_get(self):
             try:
