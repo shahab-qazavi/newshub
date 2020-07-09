@@ -17,7 +17,7 @@ class Source(BaseHandler):
             'put': ['url', 'name', 'logo', 'enabled']
         }
         # print(self.db.name)
-        # self.tokenless = True
+        self.tokenless = True
 
     def before_get(self):
         print('self.user_role')
@@ -42,7 +42,7 @@ class Categories(BaseHandler):
             'put': ['name']
         }
         # print(self.db.name)
-        # self.tokenless = True
+        self.tokenless = True
 
 
 class SourceLink(BaseHandler):
@@ -56,19 +56,19 @@ class SourceLink(BaseHandler):
             'put': ['base_url', 'url', 'box', 'link', 'summary', 'date', 'title', 'image', 'text', 'source_id',
                     'excludes', 'enabled']
         }
-        # self.tokenless = True
+        self.tokenless = True
 
 
 class ErrorLogs(BaseHandler):
     def init_method(self):
         self.casting['dates'] = ['date']
-        # self.tokenless = True
+        self.tokenless = True
 
 
 class EngineInstances(BaseHandler):
     def init_method(self):
         self.casting['dates'] = ['start_date']
-        # self.tokenless = True
+        self.tokenless = True
 
 
 class Search(BaseHandler):
@@ -80,7 +80,7 @@ class Search(BaseHandler):
 
         }
         # print(self.db.name)
-        # self.tokenless = True
+        self.tokenless = True
 
     def before_get(self):
             try:
@@ -342,7 +342,7 @@ class ExtLogin(BaseHandler):
         }
         self.inputs = {
         }
-        self.tokenless = True
+        # self.tokenless = True
 
 
 class PremiumPackages(BaseHandler):
@@ -526,7 +526,7 @@ class ConfirmUser(BaseHandler):
     def init_method(self):
         self.inputs = {
         }
-        # self.tokenless =True
+        self.tokenless =True
 
     def before_post(self):
         try:
