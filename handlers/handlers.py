@@ -455,7 +455,7 @@ class Home(BaseHandler):
         self.inputs = {
             'get': []
         }
-        self.tokenless = True
+        # self.tokenless = True
 
     def before_get(self):
             try:
