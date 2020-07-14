@@ -114,11 +114,11 @@ def worker():
             item = q.get()
             do_work(item)
         except Empty:
-            sys.exit(0)
+            sys.exit()
         q.task_done()
         global count
         if count == col_news.estimated_document_count():
-            sys.exit(0)
+            sys.exit()
 
 
 def run():

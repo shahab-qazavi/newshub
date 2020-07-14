@@ -83,7 +83,7 @@ def do_work(item_info):
             except Exception as e:
                 print(e)
                 PrintException()
-                href =''
+                href = ''
                 log_error(type='extract_link', page_url=source_link['url'], selector=source_link['link'], data={},
                           error=PrintException(), source_id=str(source['_id']),
                           source_link_id=str(source_link['_id']), engine_instance_id=engine_instance_id,
