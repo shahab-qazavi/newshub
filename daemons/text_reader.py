@@ -117,8 +117,8 @@ def worker():
             do_work(item)
         q.task_done()
         if item is None:
-            print('yeees')
-            print(item)
+            print('The End')
+            print('item is : ', item)
             sys.exit()
 
 
@@ -160,7 +160,7 @@ if len(sys.argv) > 1:
     news_id = sys.argv[1]
 run()
 duration = (datetime.now() - start).total_seconds()
-print(duration)
+print('duration is : ', duration)
 print(col_engine_instances.update_one({'_id': ObjectId(engine_instance_id)}, {'$set': {
     'duration': duration,
     'errors': error_count,
