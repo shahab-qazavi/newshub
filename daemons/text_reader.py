@@ -119,7 +119,7 @@ def worker():
         if item is None:
             print('yeees')
             print(item)
-            sys.exit(0)
+            sys.exit()
 
 
 def run():
