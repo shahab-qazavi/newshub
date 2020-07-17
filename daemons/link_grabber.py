@@ -17,7 +17,10 @@ import threading
 q = Queue()
 thread_count = 10
 import urllib3
+
+# export PYTHONWARNINGS="ignore:Unverified HTTPS request"
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+running = threading.Event()
 
 
 def create_md5(string):
@@ -200,11 +203,15 @@ def do_work(item_info):
                   engine_instance_id=engine_instance_id, module='link_grabber')
 
 
+
 def worker():
     while True:
         item = q.get()
-        do_work(item)
+        if item is not None:
+            do_work(item)
         q.task_done()
+        if item is None:
+            sys.exit()
 
 
 def run():
@@ -212,6 +219,7 @@ def run():
         t = threading.Thread(target=worker)
         t.daemon = True  # thread dies when main thread (only non-daemon thread) exits.
         t.start()
+        t.killed = True
     if source_id == '':
         sources = col_sources.find({"enabled": True})
     else:
@@ -220,6 +228,8 @@ def run():
     for source in sources:
         for source_link in col_source_links.find({'source_id': str(source['_id'])}):
             q.put({'source_link': source_link, 'source': source})
+    q.put(None)
+    running.set()
     q.join()
 
 

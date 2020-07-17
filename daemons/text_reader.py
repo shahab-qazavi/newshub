@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
+import os
 sys.path.append('/home/shahab/dev/newshub')
 sys.path.append('/root/dev/newshub')
 import requests
@@ -11,6 +12,7 @@ from bson import ObjectId
 from queue import Queue, Empty
 import threading
 import urllib3
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 col_news = db()['news']
@@ -110,14 +112,11 @@ def do_work(item):
 
 def worker():
     while True:
-        try:
-            item = q.get()
+        item = q.get()
+        if item is not None:
             do_work(item)
-        except Empty:
-            sys.exit()
         q.task_done()
-        global count
-        if count == col_news.estimated_document_count():
+        if item is None:
             sys.exit()
 
 
@@ -131,11 +130,13 @@ def run():
         news_list = col_news.find({'status': 'summary'}).sort('create_date', -1)
     else:
         news_list = col_news.find({'_id': ObjectId(news_id)})
+    q.empty()
     for item in news_list:
         item['title'] = item['title'].decode('utf-8')
         item['summary'] = item['summary'].decode('utf-8')
         item['url'] = item['url'].decode('utf-8')
         q.put(item)
+    q.put(None)
     running.set()
     q.join()
 
