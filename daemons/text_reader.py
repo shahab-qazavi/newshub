@@ -117,7 +117,7 @@ def worker():
             do_work(item)
         q.task_done()
         if item is None:
-            sys.exit()
+            sys.exit(0)
 
 
 def run():
