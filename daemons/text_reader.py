@@ -117,6 +117,8 @@ def worker():
             do_work(item)
         q.task_done()
         if item is None:
+            print('yeees')
+            print(item)
             sys.exit(0)
 
 
@@ -130,7 +132,7 @@ def run():
         news_list = col_news.find({'status': 'summary'}).sort('create_date', -1)
     else:
         news_list = col_news.find({'_id': ObjectId(news_id)})
-    q.empty()
+    # q.empty()
     for item in news_list:
         item['title'] = item['title'].decode('utf-8')
         item['summary'] = item['summary'].decode('utf-8')
