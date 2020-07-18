@@ -23,6 +23,7 @@ q = Queue()
 thread_count = 30
 count = 0
 running = threading.Event()
+news_count = 0
 
 
 def log(type, page_url, selector, data, error, source_id, engine_instance_id):
@@ -113,12 +114,16 @@ def do_work(item):
 def worker():
     while True:
         item = q.get()
-        if item is not None:
-            do_work(item)
+        # if item is not None:
+        do_work(item)
         q.task_done()
-        if item is None:
-            print('The End')
-            print('item is : ', item)
+        global count
+        global news_count
+        if count == news_count:
+            # print('The End')
+            # print(count)
+            # print(news_count)
+            # print('item is : ', item)
             sys.exit()
 
 
@@ -132,13 +137,17 @@ def run():
         news_list = col_news.find({'status': 'summary'}).sort('create_date', -1)
     else:
         news_list = col_news.find({'_id': ObjectId(news_id)})
+    global news_count
+
     # q.empty()
     for item in news_list:
+        news_count += 1
         item['title'] = item['title'].decode('utf-8')
         item['summary'] = item['summary'].decode('utf-8')
         item['url'] = item['url'].decode('utf-8')
         q.put(item)
-    q.put(None)
+        # do_work(item=item)
+    # q.put(None)
     running.set()
     q.join()
 
@@ -160,7 +169,10 @@ if len(sys.argv) > 1:
     news_id = sys.argv[1]
 run()
 duration = (datetime.now() - start).total_seconds()
+
 print('duration is : ', duration)
+print(count)
+print(news_count)
 print(col_engine_instances.update_one({'_id': ObjectId(engine_instance_id)}, {'$set': {
     'duration': duration,
     'errors': error_count,
