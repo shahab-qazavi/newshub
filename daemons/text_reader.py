@@ -62,6 +62,8 @@ def do_work(item):
             result = requests.get(item['url'], headers=headers, verify=False)
         except requests.exceptions.ConnectionError as e:
             result = requests.get(item['url'], verify=False)
+        except:
+            result = requests.get(item['url'])
         status = ''
         if result != '' or result is not None:
             html = BeautifulSoup(result.text, 'html.parser')
