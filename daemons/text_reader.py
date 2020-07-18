@@ -20,7 +20,7 @@ col_engine_instances = db()['engine_instances']
 col_error_logs = db()['error_logs']
 col_source_links = db()['source_links']
 q = Queue()
-thread_count = 20
+thread_count = 30
 count = 0
 running = threading.Event()
 news_count = 0
@@ -58,7 +58,10 @@ def do_work(item):
         item['mongo_id'] = str(item['_id'])
         del item['_id']
         headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-        result = requests.get(item['url'], headers=headers, verify=False)
+        try:
+            result = requests.get(item['url'], headers=headers, verify=False)
+        except requests.exceptions.ConnectionError as e:
+            result = requests.get(item['url'], verify=False)
         status = ''
         if result != '' or result is not None:
             html = BeautifulSoup(result.text, 'html.parser')
