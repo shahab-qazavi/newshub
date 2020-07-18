@@ -20,7 +20,7 @@ col_engine_instances = db()['engine_instances']
 col_error_logs = db()['error_logs']
 col_source_links = db()['source_links']
 q = Queue()
-thread_count = 30
+thread_count = 40
 count = 0
 running = threading.Event()
 news_count = 0
@@ -128,28 +128,28 @@ def worker():
 
 
 def run():
-    # for i in range(thread_count):
-    #     t = threading.Thread(target=worker)
-    #     t.daemon = True  # thread dies when main thread (only non-daemon thread) exits.
-    #     t.start()
-    #     t.killed = True
+    for i in range(thread_count):
+        t = threading.Thread(target=worker)
+        t.daemon = True  # thread dies when main thread (only non-daemon thread) exits.
+        t.start()
+        t.killed = True
     if news_id == '':
         news_list = col_news.find({'status': 'summary'}).sort('create_date', -1)
     else:
         news_list = col_news.find({'_id': ObjectId(news_id)})
-    # global news_count
+    global news_count
 
     # q.empty()
     for item in news_list:
-        # news_count += 1
+        news_count += 1
         item['title'] = item['title'].decode('utf-8')
         item['summary'] = item['summary'].decode('utf-8')
         item['url'] = item['url'].decode('utf-8')
         q.put(item)
-        do_work(item=item)
+        # do_work(item=item)
     # q.put(None)
-    # running.set()
-    # q.join()
+    running.set()
+    q.join()
 
 
 start = datetime.now()
