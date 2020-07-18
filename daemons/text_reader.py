@@ -61,6 +61,7 @@ def do_work(item):
         try:
             result = requests.get(item['url'], headers=headers, verify=False)
         except requests.exceptions.ConnectionError as e:
+            print(item['url'])
             result = requests.get(item['url'], verify=False)
         # except:
         #     result = requests.get(item['url'])
@@ -119,16 +120,11 @@ def do_work(item):
 def worker():
     while True:
         item = q.get()
-        # if item is not None:
         do_work(item)
         q.task_done()
         global count
         global news_count
         if count == news_count:
-            print('The End')
-            # print(count)
-            # print(news_count)
-            # print('item is : ', item)
             sys.exit()
 
 
@@ -143,7 +139,6 @@ def run():
     else:
         news_list = col_news.find({'_id': ObjectId(news_id)})
     global news_count
-
     q.empty()
     for item in news_list:
         news_count += 1
@@ -151,8 +146,6 @@ def run():
         item['summary'] = item['summary'].decode('utf-8')
         item['url'] = item['url'].decode('utf-8')
         q.put(item)
-        # do_work(item=item)
-    # q.put(None)
     running.set()
     q.join()
 
