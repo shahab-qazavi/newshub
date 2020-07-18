@@ -20,7 +20,7 @@ col_engine_instances = db()['engine_instances']
 col_error_logs = db()['error_logs']
 col_source_links = db()['source_links']
 q = Queue()
-thread_count = 30
+thread_count = 27
 count = 0
 running = threading.Event()
 news_count = 0
@@ -126,8 +126,8 @@ def worker():
         global news_count
         if count == news_count:
             print('The End')
-            print(count)
-            print(news_count)
+            # print(count)
+            # print(news_count)
             # print('item is : ', item)
             sys.exit()
 
