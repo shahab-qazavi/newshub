@@ -120,9 +120,9 @@ def worker():
         global count
         global news_count
         if count == news_count:
-            # print('The End')
-            # print(count)
-            # print(news_count)
+            print('The End')
+            print(count)
+            print(news_count)
             # print('item is : ', item)
             sys.exit()
 
@@ -141,7 +141,7 @@ def run():
 
     # q.empty()
     for item in news_list:
-        news_count += 1
+        # news_count += 1
         item['title'] = item['title'].decode('utf-8')
         item['summary'] = item['summary'].decode('utf-8')
         item['url'] = item['url'].decode('utf-8')
