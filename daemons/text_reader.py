@@ -81,10 +81,10 @@ def do_work(item):
                         for exclude in source_link_info['exclude']:
                             for ex in news_html.select(exclude):
                                 ex.decompose()
-                else:
-                    status = 'Empty'
-                    log(type='read_text', page_url=item['url'], selector=item['text_selector'], data={},
-                        error='Empty', engine_instance_id=engine_instance_id, source_id=item['source_id'])
+                # else:
+                #     status = 'Empty'
+                #     log(type='read_text', page_url=item['url'], selector=item['text_selector'], data={},
+                #         error='Empty', engine_instance_id=engine_instance_id, source_id=item['source_id'])
             except Exception as e:
                 news_html = ''
                 status = 'error_text'
