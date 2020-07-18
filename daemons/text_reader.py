@@ -20,7 +20,7 @@ col_engine_instances = db()['engine_instances']
 col_error_logs = db()['error_logs']
 col_source_links = db()['source_links']
 q = Queue()
-thread_count = 40
+thread_count = 20
 count = 0
 running = threading.Event()
 news_count = 0
@@ -139,7 +139,7 @@ def run():
         news_list = col_news.find({'_id': ObjectId(news_id)})
     global news_count
 
-    # q.empty()
+    q.empty()
     for item in news_list:
         news_count += 1
         item['title'] = item['title'].decode('utf-8')
