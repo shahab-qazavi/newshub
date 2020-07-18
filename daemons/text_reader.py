@@ -171,8 +171,6 @@ run()
 duration = (datetime.now() - start).total_seconds()
 
 print('duration is : ', duration)
-print(count)
-print(news_count)
 print(col_engine_instances.update_one({'_id': ObjectId(engine_instance_id)}, {'$set': {
     'duration': duration,
     'errors': error_count,
