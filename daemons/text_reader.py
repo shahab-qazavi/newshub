@@ -77,7 +77,9 @@ def do_work(item):
                 html = BeautifulSoup(result.text, 'html.parser')
             except:
                 print('--------------')
-                print(result)
+                ddd = [result, '']
+                print(type(result))
+                print(ddd)
             try:
                 news_html = html.select(item['text_selector'])
                 if len(news_html) > 0:
