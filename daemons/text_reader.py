@@ -63,12 +63,12 @@ def do_work(item):
         try:
             result = requests.get(item['url'], headers=headers, verify=False)
         except:
-            try:
-                result = requests.get(item['url'], verify=False)
-            except:
-                result = None
-                log(type='read_text', page_url=item['url'], selector='', data={},
-                    error=PrintException(), engine_instance_id=engine_instance_id, source_id=item['source_id'])
+            # try:
+            result = requests.get(item['url'], verify=False)
+            # except:
+            #     result = None
+            #     log(type='read_text', page_url=item['url'], selector='', data={},
+            #         error=PrintException(), engine_instance_id=engine_instance_id, source_id=item['source_id'])
 
         status = ''
         if result != '' or result is not None:
