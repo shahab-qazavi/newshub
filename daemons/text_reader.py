@@ -63,12 +63,14 @@ def do_work(item):
         except requests.exceptions.ConnectionError:
             try:
                 result = requests.get(item['url'], verify=False)
-            except Exception as e:
-                result = None
-                log(type='read_text', page_url=item['url'], selector='', data={},
-                    error=PrintException(), engine_instance_id=engine_instance_id, source_id=item['source_id'])
-        except:
-            result = requests.get(item['url'])
+            except:
+                try:
+                    result = requests.get(item['url'])
+                except Exception as e:
+                    result = None
+                    log(type='read_text', page_url=item['url'], selector='', data={},
+                        error=e, engine_instance_id=engine_instance_id, source_id=item['source_id'])
+
 
         status = ''
         if result != '' or result is not None:
