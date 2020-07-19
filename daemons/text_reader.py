@@ -20,7 +20,7 @@ col_engine_instances = db()['engine_instances']
 col_error_logs = db()['error_logs']
 col_source_links = db()['source_links']
 q = Queue()
-thread_count = 20
+thread_count = 25
 count = 0
 running = threading.Event()
 news_count = 0
@@ -63,12 +63,12 @@ def do_work(item):
         try:
             result = requests.get(item['url'], headers=headers, verify=False)
         except:
-            # try:
-            result = requests.get(item['url'], verify=False)
-            # except:
-            #     result = None
-            #     log(type='read_text', page_url=item['url'], selector='', data={},
-            #         error=PrintException(), engine_instance_id=engine_instance_id, source_id=item['source_id'])
+            try:
+                result = requests.get(item['url'], verify=False)
+            except:
+                result = None
+                log(type='read_text', page_url=item['url'], selector='', data={},
+                    error=PrintException(), engine_instance_id=engine_instance_id, source_id=item['source_id'])
 
         status = ''
         if result != '' or result is not None:
