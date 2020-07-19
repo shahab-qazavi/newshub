@@ -68,7 +68,7 @@ def do_work(item):
             except:
                 print(item['url'])
                 result = ''
-                log(type='read_text', page_url=item['url'], selector='', data={},
+                log(type='get_url', page_url=item['url'], selector='', data={},
                     error=PrintException(), engine_instance_id=engine_instance_id, source_id=item['source_id'])
 
         status = ''
