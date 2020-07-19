@@ -48,8 +48,6 @@ def remove_hrefs(html):
     for a in html.find_all('a'):
         del a['href']
     return html
-# */30 * * * * python3 /root/dev/newshub/daemons/link_grabber.py
-# 0 */1 * * * python3 /root/dev/newshub/daemons/text_reader.py
 
 
 def do_work(item):
