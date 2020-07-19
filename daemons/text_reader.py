@@ -20,11 +20,11 @@ col_engine_instances = db()['engine_instances']
 col_error_logs = db()['error_logs']
 col_source_links = db()['source_links']
 q = Queue()
-thread_count = 27
+thread_count = 15
 count = 0
 running = threading.Event()
 news_count = 0
-
+done = True
 
 def log(type, page_url, selector, data, error, source_id, engine_instance_id):
     try:
@@ -117,14 +117,16 @@ def do_work(item):
 
 
 def worker():
-    while True:
+    global done
+    while done:
         item = q.get()
         do_work(item)
         q.task_done()
         global count
         global news_count
         if count == news_count:
-            sys.exit()
+            done = False
+            exit()
 
 
 def run():
