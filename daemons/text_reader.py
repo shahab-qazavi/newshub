@@ -73,7 +73,10 @@ def do_work(item):
 
         status = ''
         if result != '' or result is not None:
-            html = BeautifulSoup(result.text, 'html.parser')
+            try:
+                html = BeautifulSoup(result.text, 'html.parser')
+            except:
+                print(result)
             try:
                 news_html = html.select(item['text_selector'])
                 if len(news_html) > 0:
