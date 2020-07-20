@@ -531,6 +531,9 @@ class ConfirmUser(BaseHandler):
     def before_post(self):
         try:
             col_users = self.db['users']
+            print('-------------------')
+            print(self.params['activation_code'])
+            print('-------------------')
             # result = col_users.update({"mobile": self.params['mobile'],
             result = col_users.update({"_id": ObjectId(self.user_id),
                                   "activation_code" : self.params['activation_code']}, {'$set': {'confirmed': True}})
