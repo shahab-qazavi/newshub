@@ -11,11 +11,14 @@ col_sources = db()['sources']
 col_source_links = db()['source_links']
 col_engine_instances = db()['engine_instances']
 col_error_logs = db()['error_logs']
+count = 0
+news_count = 0
 link_count = 0
 from queue import Queue
 import threading
 q = Queue()
 thread_count = 10
+done = True
 import urllib3
 
 # export PYTHONWARNINGS="ignore:Unverified HTTPS request"
@@ -67,14 +70,14 @@ def get_page(url):
 def do_work(item_info):
     source_link = item_info['source_link']
     source = item_info['source']
-
+    global count
+    count += 1
+    print(count)
     try:
-
         global link_count
-        global new_contents
         link_count += 1
         html = get_page(source_link['url'])
-        print(link_count)
+
         for item in html.select(source_link['box']):
             try:
                 if source_link['link'] == '':
@@ -171,7 +174,7 @@ def do_work(item_info):
                               source_link_id=str(source_link['_id']), engine_instance_id=engine_instance_id, module='link_grabber')
 
                 url_hash = create_md5(url)
-                new_contents += 1
+
                 if col_news.count_documents({'url_hash': url_hash}) == 0:
                     try:
                         col_news.insert_one({
@@ -203,15 +206,17 @@ def do_work(item_info):
                   engine_instance_id=engine_instance_id, module='link_grabber')
 
 
-
 def worker():
-    while True:
+    global done
+    while done:
         item = q.get()
-        if item is not None:
-            do_work(item)
+        do_work(item)
         q.task_done()
-        if item is None:
-            sys.exit()
+        global count
+        global news_count
+        if count == news_count:
+            done = False
+            exit()
 
 
 def run():
@@ -224,11 +229,12 @@ def run():
         sources = col_sources.find({"enabled": True})
     else:
         sources = col_sources.find({"_id": ObjectId(source_id)})
+    global news_count
     q.empty()
     for source in sources:
         for source_link in col_source_links.find({'source_id': str(source['_id'])}):
+            news_count += 1
             q.put({'source_link': source_link, 'source': source})
-    q.put(None)
     running.set()
     q.join()
 
