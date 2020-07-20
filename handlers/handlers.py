@@ -534,6 +534,7 @@ class ConfirmUser(BaseHandler):
             # result = col_users.update({"mobile": self.params['mobile'],
             print('---------------------')
             print(self.user_id)
+            print(self.params['activation_code'])
             print(self.params)
             print('---------------------')
             result = col_users.update({"_id": ObjectId(self.user_id),
