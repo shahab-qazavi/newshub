@@ -526,7 +526,7 @@ class ConfirmUser(BaseHandler):
     def init_method(self):
         self.inputs = {
         }
-        self.tokenless =True
+        # self.tokenless =True
 
     def before_post(self):
         try:
