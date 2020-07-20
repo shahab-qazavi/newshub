@@ -533,6 +533,7 @@ class ConfirmUser(BaseHandler):
             col_users = self.db['users']
             print('-------------------')
             print(self.params['activation_code'])
+            print(self.user_id)
             print('-------------------')
             # result = col_users.update({"mobile": self.params['mobile'],
             result = col_users.update({"_id": ObjectId(self.user_id),
@@ -545,7 +546,7 @@ class ConfirmUser(BaseHandler):
             self.allow_action = False
         except:
             self.set_output('public_operations', 'failed')
-            self.PrintException()
+            print(self.PrintException())
             return False
         return True
 
