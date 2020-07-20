@@ -72,10 +72,12 @@ def do_work(item_info):
     source = item_info['source']
     global count
     count += 1
-    print(count)
+    # print(count)
     try:
         global link_count
+        global new_contents
         link_count += 1
+        print(link_count)
         html = get_page(source_link['url'])
 
         for item in html.select(source_link['box']):
@@ -174,7 +176,7 @@ def do_work(item_info):
                               source_link_id=str(source_link['_id']), engine_instance_id=engine_instance_id, module='link_grabber')
 
                 url_hash = create_md5(url)
-
+                new_contents += 1
                 if col_news.count_documents({'url_hash': url_hash}) == 0:
                     try:
                         col_news.insert_one({
