@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
-import subprocess
+from subprocess import run
 import os
 sys.path.append('/home/shahab/dev/newshub')
 sys.path.append('/root/dev/newshub')
@@ -21,7 +21,7 @@ try:
     col_error_logs = db()['error_logs']
     col_source_links = db()['source_links']
 except:
-    subprocess.run(['systemctl','restart','mongod'])
+    run(['systemctl','restart','mongod'])
     col_news = db()['news']
     col_engine_instances = db()['engine_instances']
     col_error_logs = db()['error_logs']
@@ -130,7 +130,7 @@ def do_work(item):
             try:
                 es().index(index='newshub', doc_type='news', body=item)
             except:
-                subprocess.run(['systemctl','restart','elasticsearch'])
+                run(['systemctl','restart','elasticsearch'])
                 es().index(index='newshub', doc_type='news', body=item)
             col_news.update_one({'_id': ObjectId(item['mongo_id'])}, {'$set': {
                 'status': status,
