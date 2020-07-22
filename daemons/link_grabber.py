@@ -209,16 +209,16 @@ def do_work(item_info):
 
 
 def worker():
-    global done
-    while done:
+    # global done
+    while True:
         item = q.get()
         do_work(item)
         q.task_done()
-        global count
-        global news_count
-        if count == news_count:
-            done = False
-            exit()
+        # global count
+        # global news_count
+        # if count == news_count:
+        #     done = False
+        #     exit()
 
 
 def run():
