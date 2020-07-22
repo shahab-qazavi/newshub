@@ -153,9 +153,10 @@ def worker():
             print(news_count)
             print('--------------')
             done = False
-            exit()
-            quit()
-            break
+            sys.exit()
+            # exit()
+            # quit()
+            # break
 
 
 def run():
