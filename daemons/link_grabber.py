@@ -209,15 +209,16 @@ def do_work(item_info):
 
 
 def worker():
-    # global done
-    while True:
+    global done
+    while done:
         item = q.get()
-        do_work(item)
+        if item is not None:
+            do_work(item)
         q.task_done()
         # global count
         # global news_count
-        # if count == news_count:
-        #     done = False
+        if item is None:
+            done = False
         #     exit()
 
 
@@ -237,6 +238,7 @@ def run():
         for source_link in col_source_links.find({'source_id': str(source['_id'])}):
             news_count += 1
             q.put({'source_link': source_link, 'source': source})
+    q.put(None)
     running.set()
     q.join()
 

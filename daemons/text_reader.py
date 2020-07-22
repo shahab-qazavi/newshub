@@ -128,11 +128,11 @@ def do_work(item):
             item['text'] = news_text
             item['html'] = str(news_html)
             item['text_reader_id'] = engine_instance_id
-            # try:
-            #     es().index(index='newshub', doc_type='news', body=item)
-            # except:
-            #     run(['systemctl','restart','elasticsearch'])
-            #     es().index(index='newshub', doc_type='news', body=item)
+            try:
+                es().index(index='newshub', doc_type='news', body=item)
+            except:
+                run(['systemctl','restart','elasticsearch'])
+                es().index(index='newshub', doc_type='news', body=item)
             col_news.update_one({'_id': ObjectId(item['mongo_id'])}, {'$set': {
                 'status': status,
                 'text': news_text,
@@ -147,11 +147,14 @@ def worker():
     global done
     while done:
         item = q.get()
-        do_work(item)
+        if item is not None:
+            do_work(item)
         q.task_done()
         global count
         global news_count
-        if count == news_count:
+        if item is None:
+            print('--------------')
+            print(news_count)
             done = False
 
 
@@ -173,6 +176,7 @@ def run():
         item['summary'] = item['summary'].decode('utf-8')
         item['url'] = item['url'].decode('utf-8')
         q.put(item)
+    q.put(None)
     running.set()
     q.join()
 
