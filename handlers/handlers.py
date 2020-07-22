@@ -100,6 +100,7 @@ def remove_hrefs(html):
         del a['href']
     return html
 
+
 class TestCrawl(BaseHandler):
     def init_method(self):
         # self.required = {
@@ -182,12 +183,12 @@ class TestCrawl(BaseHandler):
 class MyNews(BaseHandler):
     def init_method(self):
         self.required = {
-            'get': ['keywords', 'source_ids'],
+            'get': ['keywords', 'source_ids', 'category_id'],
         }
         self.inputs = {
-            'get': ['keywords', 'source_ids'],
+            'get': ['keywords', 'source_ids', 'category_id'],
         }
-        self.casting['dics'] = ['keywords', 'source_ids']
+        self.casting['dics'] = ['keywords', 'source_ids', 'category_id']
 
     def before_get(self):
         try:
@@ -526,7 +527,7 @@ class ConfirmUser(BaseHandler):
     def init_method(self):
         self.inputs = {
         }
-        self.tokenless =True
+        # self.tokenless =True
 
     def before_post(self):
         try:

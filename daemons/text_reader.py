@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
+import subprocess
 import os
 sys.path.append('/home/shahab/dev/newshub')
 sys.path.append('/root/dev/newshub')
@@ -14,17 +15,24 @@ import threading
 import urllib3
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-col_news = db()['news']
-col_engine_instances = db()['engine_instances']
-col_error_logs = db()['error_logs']
-col_source_links = db()['source_links']
+try:
+    col_news = db()['news']
+    col_engine_instances = db()['engine_instances']
+    col_error_logs = db()['error_logs']
+    col_source_links = db()['source_links']
+except:
+    subprocess.run(['systemctl','restart','mongod'])
+    col_news = db()['news']
+    col_engine_instances = db()['engine_instances']
+    col_error_logs = db()['error_logs']
+    col_source_links = db()['source_links']
 q = Queue()
 thread_count = 25
 count = 0
 running = threading.Event()
 news_count = 0
 done = True
+
 
 def log(type, page_url, selector, data, error, source_id, engine_instance_id):
     try:
@@ -119,7 +127,11 @@ def do_work(item):
             item['text'] = news_text
             item['html'] = str(news_html)
             item['text_reader_id'] = engine_instance_id
-            es().index(index='newshub', doc_type='news', body=item)
+            try:
+                es().index(index='newshub', doc_type='news', body=item)
+            except:
+                subprocess.run(['systemctl','restart','elasticsearch'])
+                es().index(index='newshub', doc_type='news', body=item)
             col_news.update_one({'_id': ObjectId(item['mongo_id'])}, {'$set': {
                 'status': status,
                 'text': news_text,
