@@ -27,11 +27,10 @@ except:
     col_error_logs = db()['error_logs']
     col_source_links = db()['source_links']
 q = Queue()
-thread_count = 20
+thread_count = 30
 count = 0
 running = threading.Event()
 news_count = 0
-
 
 
 def log(type, page_url, selector, data, error, source_id, engine_instance_id):
@@ -151,14 +150,7 @@ def worker():
         global count
         global news_count
         if count == news_count:
-            print('--------------')
-            print(count)
-            print(news_count)
             done = False
-            exit()
-            quit()
-            sys.exit()
-
 
 
 def run():
@@ -172,7 +164,7 @@ def run():
     else:
         news_list = col_news.find({'_id': ObjectId(news_id)})
     global news_count
-    # q.empty()
+    q.empty()
     for item in news_list:
         news_count += 1
         item['title'] = item['title'].decode('utf-8')
