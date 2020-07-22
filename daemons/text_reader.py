@@ -152,8 +152,9 @@ def worker():
             print(count)
             print(news_count)
             print('--------------')
-
             done = False
+            exit()
+            quit()
             break
 
 
