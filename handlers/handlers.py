@@ -533,6 +533,11 @@ class ConfirmUser(BaseHandler):
         try:
             col_users = self.db['users']
             # result = col_users.update({"mobile": self.params['mobile'],
+            print('---------------------')
+            print(self.user_id)
+            print(self.params['activation_code'])
+            print(self.params)
+            print('---------------------')
             result = col_users.update({"_id": ObjectId(self.user_id),
                                   "activation_code" : self.params['activation_code']}, {'$set': {'confirmed': True}})
             if result['nModified'] == 1:
@@ -543,7 +548,7 @@ class ConfirmUser(BaseHandler):
             self.allow_action = False
         except:
             self.set_output('public_operations', 'failed')
-            self.PrintException()
+            print(self.PrintException())
             return False
         return True
 

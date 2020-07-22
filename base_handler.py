@@ -173,6 +173,7 @@ class BaseHandler(RequestHandler):
         # self.Print('%s fired' % inspect.stack()[0][3], Colors.GRAY)
         # print('KOOOOOOOOOOOOOOOON')
         try:
+            # print('koooooooooooooooon dovom')
             if self.token is None:
                 self.set_output('user', 'token_not_received')
             else:

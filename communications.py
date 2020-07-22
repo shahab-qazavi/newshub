@@ -53,6 +53,7 @@ def send_sms(text, number, date=datetime.now()):
         print(result.text)
         # print(result.json())
         print(result.status_code)
-    except:
+    except Exception as e:
         print('KOOOOOOOOOOOOOOOON')
+        print(e)
         PrintException()
