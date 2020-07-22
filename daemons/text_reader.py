@@ -154,6 +154,7 @@ def worker():
             print('--------------')
 
             done = False
+            break
 
 
 def run():
