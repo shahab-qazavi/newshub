@@ -166,8 +166,7 @@ def worker():
                 'source_links': count,
                 'new_contents': ''
             }})
-            kill_file('text_reader.py', 'python3')
-
+            subprocess.run(['pkill', '-f', 'text_reader.py'])
 
 def run():
     for i in range(thread_count):
