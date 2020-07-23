@@ -140,11 +140,12 @@ def worker():
         global count
         global news_count
         if count == news_count:
+            print(done)
             done = False
-            exit()
             print('----------------')
             print(count)
             print(done)
+            exit()
 
 
 def run():
