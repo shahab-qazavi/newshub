@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
-from subprocess import run
 import os
 sys.path.append('/home/shahab/dev/newshub')
 sys.path.append('/home/oem/dev/newshub')
@@ -16,22 +15,17 @@ import threading
 import urllib3
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-try:
-    col_news = db()['news']
-    col_engine_instances = db()['engine_instances']
-    col_error_logs = db()['error_logs']
-    col_source_links = db()['source_links']
-except:
-    run(['systemctl','restart','mongod'])
-    col_news = db()['news']
-    col_engine_instances = db()['engine_instances']
-    col_error_logs = db()['error_logs']
-    col_source_links = db()['source_links']
+
+col_news = db()['news']
+col_engine_instances = db()['engine_instances']
+col_error_logs = db()['error_logs']
+col_source_links = db()['source_links']
 q = Queue()
-thread_count = 30
+thread_count = 25
 count = 0
 running = threading.Event()
 news_count = 0
+done = True
 
 
 def log(type, page_url, selector, data, error, source_id, engine_instance_id):
@@ -78,24 +72,24 @@ def do_work(item):
                     error=PrintException(), engine_instance_id=engine_instance_id, source_id=item['source_id'])
 
         status = ''
-        if result != '' or result is not None:
-            # try:
-            html = BeautifulSoup(result.text, 'html.parser')
-            # except:
-            #     html = ''
-            #     print('--------------')
-            #     ddd = [result, '']
-            #     print(type(result))
-            #     print(ddd)
+        if (result != '') or (result is not None):
             try:
-                if html != '' or html is not None:
-                    news_html = html.select(item['text_selector'])
+                html = BeautifulSoup(result.text, 'html.parser')
+            except Exception as e:
+                print('--------------')
+                html = ''
+                print(e)
+                ddd = [result, '']
+                print(type(result))
+                print(ddd)
+            try:
+                news_html = html.select(item['text_selector'])
                 if len(news_html) > 0:
                     news_html = news_html[0]
                     try:
                         news_html = remove_hrefs(news_html)
                     except:
-                        news_html = news_html
+                        pass
                     status = 'text'
                     source_link_info = col_source_links.find_one({'_id': ObjectId(item['source_link_id'])})
                     if 'exclude' in source_link_info:
@@ -129,11 +123,7 @@ def do_work(item):
             item['text'] = news_text
             item['html'] = str(news_html)
             item['text_reader_id'] = engine_instance_id
-            # try:
             es().index(index='newshub', doc_type='news', body=item)
-            # except:
-            #     run(['systemctl','restart','elasticsearch'])
-            #     es().index(index='newshub', doc_type='news', body=item)
             col_news.update_one({'_id': ObjectId(item['mongo_id'])}, {'$set': {
                 'status': status,
                 'text': news_text,
@@ -141,22 +131,17 @@ def do_work(item):
             }})
 
 
-done = True
-
-
 def worker():
     global done
     while done:
         item = q.get()
-        if item is not None:
-            do_work(item)
+        do_work(item)
         q.task_done()
         global count
         global news_count
-        if item is None:
-            print('--------------')
-            print(news_count)
+        if count == news_count:
             done = False
+            exit()
 
 
 def run():
@@ -177,7 +162,6 @@ def run():
         item['summary'] = item['summary'].decode('utf-8')
         item['url'] = item['url'].decode('utf-8')
         q.put(item)
-    q.put(None)
     running.set()
     q.join()
 
