@@ -14,7 +14,7 @@ from queue import Queue, Empty
 import threading
 import urllib3
 import time
-from subprocess import run as rn
+import subprocess
 # import sub
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -29,6 +29,18 @@ count = 0
 running = threading.Event()
 news_count = 0
 done = True
+
+
+def kill_file():
+    result = subprocess.getstatusoutput(f'ps -ef | grep python3')
+
+    # file_names = ['text_reader.py', 'link_grabber.py']
+
+    for item in result[1].split('\n'):
+        finally_result = item.split()
+        # for name in file_names:
+        if 'text_reader.py' in finally_result[-1]:
+            subprocess.run(['kill', '-9', finally_result[1]])
 
 
 def log(type, page_url, selector, data, error, source_id, engine_instance_id):
@@ -129,7 +141,7 @@ def do_work(item):
             try:
                 es().index(index='newshub', doc_type='news', body=item)
             except:
-                rn(['systemctl','restart','elasticsearch'])
+                subprocess.run(['systemctl','restart','elasticsearch'])
                 es().index(index='newshub', doc_type='news', body=item)
             col_news.update_one({'_id': ObjectId(item['mongo_id'])}, {'$set': {
                 'status': status,
@@ -189,14 +201,14 @@ new_contents = 0
 news_id = ''
 if len(sys.argv) > 1:
     news_id = sys.argv[1]
-if __name__ == "__main__":
-    run()
-    duration = (datetime.now() - start).total_seconds()
+kill_file()
+run()
+duration = (datetime.now() - start).total_seconds()
 
-    print('duration is : ', duration)
-    print(col_engine_instances.update_one({'_id': ObjectId(engine_instance_id)}, {'$set': {
-        'duration': duration,
-        'errors': error_count,
-        'source_links': count,
-        'new_contents': ''
-    }}).raw_result)
+print('duration is : ', duration)
+print(col_engine_instances.update_one({'_id': ObjectId(engine_instance_id)}, {'$set': {
+    'duration': duration,
+    'errors': error_count,
+    'source_links': count,
+    'new_contents': ''
+}}).raw_result)
