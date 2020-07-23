@@ -4,6 +4,7 @@ import sys
 from subprocess import run
 import os
 sys.path.append('/home/shahab/dev/newshub')
+sys.path.append('/home/oem/dev/newshub')
 sys.path.append('/root/dev/newshub')
 import requests
 from bs4 import BeautifulSoup

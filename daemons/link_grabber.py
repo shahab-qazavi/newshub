@@ -2,6 +2,7 @@ __author__ = 'Shahab Qazavi & Ehsan Shirzadi'
 
 import sys
 sys.path.append('/home/shahab/dev/newshub')
+sys.path.append('/home/oem/dev/newshub')
 sys.path.append('/root/dev/newshub')
 from publics import db, PrintException
 from datetime import datetime
