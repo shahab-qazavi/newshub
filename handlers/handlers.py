@@ -183,12 +183,12 @@ class TestCrawl(BaseHandler):
 class MyNews(BaseHandler):
     def init_method(self):
         self.required = {
-            'get': ['keywords', 'source_ids', 'category_id'],
+            'get': ['keywords', 'source_ids'],
         }
         self.inputs = {
             'get': ['keywords', 'source_ids', 'category_id'],
         }
-        self.casting['dics'] = ['keywords', 'source_ids', 'category_id']
+        self.casting['dics'] = ['keywords', 'source_ids']
 
     def before_get(self):
         try:

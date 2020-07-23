@@ -4,6 +4,7 @@ import sys
 from subprocess import run
 import os
 sys.path.append('/home/shahab/dev/newshub')
+sys.path.append('/home/oem/dev/newshub')
 sys.path.append('/root/dev/newshub')
 import requests
 from bs4 import BeautifulSoup
@@ -78,14 +79,14 @@ def do_work(item):
 
         status = ''
         if result != '' or result is not None:
-            try:
-                html = BeautifulSoup(result.text, 'html.parser')
-            except:
-                html = ''
-                print('--------------')
-                ddd = [result, '']
-                print(type(result))
-                print(ddd)
+            # try:
+            html = BeautifulSoup(result.text, 'html.parser')
+            # except:
+            #     html = ''
+            #     print('--------------')
+            #     ddd = [result, '']
+            #     print(type(result))
+            #     print(ddd)
             try:
                 if html != '' or html is not None:
                     news_html = html.select(item['text_selector'])
@@ -94,7 +95,7 @@ def do_work(item):
                     try:
                         news_html = remove_hrefs(news_html)
                     except:
-                        pass
+                        news_html = news_html
                     status = 'text'
                     source_link_info = col_source_links.find_one({'_id': ObjectId(item['source_link_id'])})
                     if 'exclude' in source_link_info:
@@ -128,11 +129,11 @@ def do_work(item):
             item['text'] = news_text
             item['html'] = str(news_html)
             item['text_reader_id'] = engine_instance_id
-            try:
-                es().index(index='newshub', doc_type='news', body=item)
-            except:
-                run(['systemctl','restart','elasticsearch'])
-                es().index(index='newshub', doc_type='news', body=item)
+            # try:
+            es().index(index='newshub', doc_type='news', body=item)
+            # except:
+            #     run(['systemctl','restart','elasticsearch'])
+            #     es().index(index='newshub', doc_type='news', body=item)
             col_news.update_one({'_id': ObjectId(item['mongo_id'])}, {'$set': {
                 'status': status,
                 'text': news_text,
@@ -144,14 +145,18 @@ done = True
 
 
 def worker():
-    # global done
-    global count
-    global news_count
-    while count != news_count:
+    global done
+    while done:
         item = q.get()
-        # if item is not None:
-        do_work(item)
+        if item is not None:
+            do_work(item)
         q.task_done()
+        global count
+        global news_count
+        if item is None:
+            print('--------------')
+            print(news_count)
+            done = False
 
 
 def run():
@@ -172,7 +177,7 @@ def run():
         item['summary'] = item['summary'].decode('utf-8')
         item['url'] = item['url'].decode('utf-8')
         q.put(item)
-    # q.put(None)
+    q.put(None)
     running.set()
     q.join()
 
