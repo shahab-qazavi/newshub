@@ -5,6 +5,7 @@ import os
 sys.path.append('/home/shahab/dev/newshub')
 sys.path.append('/home/oem/dev/newshub')
 sys.path.append('/root/dev/newshub')
+import elasticsearch
 import requests
 from bs4 import BeautifulSoup
 from publics import db, es, PrintException
@@ -140,7 +141,7 @@ def do_work(item):
             item['text_reader_id'] = engine_instance_id
             try:
                 es().index(index='newshub', doc_type='news', body=item)
-            except:
+            except elasticsearch.ElasticsearchException as e:
                 subprocess.run(['systemctl','restart','elasticsearch'])
                 es().index(index='newshub', doc_type='news', body=item)
             col_news.update_one({'_id': ObjectId(item['mongo_id'])}, {'$set': {
@@ -201,7 +202,7 @@ new_contents = 0
 news_id = ''
 if len(sys.argv) > 1:
     news_id = sys.argv[1]
-kill_file()
+# kill_file()
 run()
 duration = (datetime.now() - start).total_seconds()
 
