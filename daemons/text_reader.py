@@ -13,6 +13,8 @@ from bson import ObjectId
 from queue import Queue, Empty
 import threading
 import urllib3
+import time
+# import sub
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -134,18 +136,20 @@ def do_work(item):
 def worker():
     global done
     while done:
+        time.sleep(1)
         item = q.get()
         do_work(item)
         q.task_done()
         global count
         global news_count
         if count == news_count:
-            print(done)
+            # print(done)
             done = False
             print('----------------')
             print(count)
             print(done)
             exit()
+
 
 
 def run():
@@ -185,13 +189,14 @@ new_contents = 0
 news_id = ''
 if len(sys.argv) > 1:
     news_id = sys.argv[1]
-run()
-duration = (datetime.now() - start).total_seconds()
+if __name__ == "__main__":
+    run()
+    duration = (datetime.now() - start).total_seconds()
 
-print('duration is : ', duration)
-print(col_engine_instances.update_one({'_id': ObjectId(engine_instance_id)}, {'$set': {
-    'duration': duration,
-    'errors': error_count,
-    'source_links': count,
-    'new_contents': ''
-}}).raw_result)
+    print('duration is : ', duration)
+    print(col_engine_instances.update_one({'_id': ObjectId(engine_instance_id)}, {'$set': {
+        'duration': duration,
+        'errors': error_count,
+        'source_links': count,
+        'new_contents': ''
+    }}).raw_result)
