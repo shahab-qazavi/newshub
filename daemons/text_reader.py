@@ -156,12 +156,17 @@ def worker():
         q.task_done()
         global count
         global news_count
+        global error_count
         if count == news_count:
-            print('------------')
-            print(news_count)
-            kill_file('text_reader.py', 'python3')
             done = False
-            exit()
+            durations = (datetime.now() - start).total_seconds()
+            col_engine_instances.update_one({'_id': ObjectId(engine_instance_id)}, {'$set': {
+                'duration': durations,
+                'errors': error_count,
+                'source_links': count,
+                'new_contents': ''
+            }})
+            kill_file('text_reader.py', 'python3')
 
 
 def run():
@@ -203,8 +208,8 @@ if len(sys.argv) > 1:
     news_id = sys.argv[1]
 # kill_file()
 run()
-duration = (datetime.now() - start).total_seconds()
 
+duration = (datetime.now() - start).total_seconds()
 print('duration is : ', duration)
 print(col_engine_instances.update_one({'_id': ObjectId(engine_instance_id)}, {'$set': {
     'duration': duration,
