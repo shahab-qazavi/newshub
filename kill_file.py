@@ -3,7 +3,7 @@ import subprocess
 
 result = subprocess.getstatusoutput(f'ps -ef | grep python3')
 
-file_names = ['text_reader.py', 'link_grabber.py']
+file_names = ['text_reader.py']
 
 for item in result[1].split('\n'):
     finally_result = item.split()
