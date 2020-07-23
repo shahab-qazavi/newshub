@@ -32,15 +32,11 @@ news_count = 0
 done = True
 
 
-def kill_file():
-    result = subprocess.getstatusoutput(f'ps -ef | grep python3')
-
-    # file_names = ['text_reader.py', 'link_grabber.py']
-
+def kill_file(file_name, operator):
+    result = subprocess.getstatusoutput(f'ps -ef | grep %s' % operator)
     for item in result[1].split('\n'):
         finally_result = item.split()
-        # for name in file_names:
-        if 'text_reader.py' in finally_result[-1]:
+        if file_name in finally_result[-1]:
             subprocess.run(['kill', '-9', finally_result[1]])
 
 
@@ -161,6 +157,9 @@ def worker():
         global count
         global news_count
         if count == news_count:
+            print('------------')
+            print(news_count)
+            kill_file('text_reader.py', 'python3')
             done = False
             exit()
 
