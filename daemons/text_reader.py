@@ -142,6 +142,9 @@ def worker():
         if count == news_count:
             done = False
             exit()
+            print('----------------')
+            print(count)
+            print(done)
 
 
 def run():
