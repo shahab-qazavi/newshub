@@ -168,6 +168,7 @@ def worker():
             }})
             subprocess.run(['pkill', '-f', 'text_reader.py'])
 
+
 def run():
     for i in range(thread_count):
         t = threading.Thread(target=worker)
