@@ -17,6 +17,11 @@ import urllib3
 import time
 import subprocess
 # import sub
+try:
+    from elasticsearch import Elasticsearch
+    Elasticsearch('localhost')
+except:
+    subprocess.run(['systemctl','restart','elasticsearch'])
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -135,11 +140,7 @@ def do_work(item):
             item['text'] = news_text
             item['html'] = str(news_html)
             item['text_reader_id'] = engine_instance_id
-            try:
-                es().index(index='newshub', doc_type='news', body=item)
-            except elasticsearch.exceptions.ConnectionError:
-                subprocess.run(['systemctl','restart','elasticsearch'])
-                es().index(index='newshub', doc_type='news', body=item)
+            es().index(index='newshub', doc_type='news', body=item)
             col_news.update_one({'_id': ObjectId(item['mongo_id'])}, {'$set': {
                 'status': status,
                 'text': news_text,
