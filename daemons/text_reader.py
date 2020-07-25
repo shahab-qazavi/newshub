@@ -137,7 +137,7 @@ def do_work(item):
             item['text_reader_id'] = engine_instance_id
             try:
                 es().index(index='newshub', doc_type='news', body=item)
-            except elasticsearch.ElasticsearchException as e:
+            except elasticsearch.exceptions.ConnectionError:
                 subprocess.run(['systemctl','restart','elasticsearch'])
                 es().index(index='newshub', doc_type='news', body=item)
             col_news.update_one({'_id': ObjectId(item['mongo_id'])}, {'$set': {
