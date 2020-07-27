@@ -23,8 +23,8 @@ class Source(BaseHandler):
         print('self.user_role')
         print(self.user_role)
         try:
-            if self.user_role == 'user':
-                self.conditions['enabled'] = True
+#             if self.user_role == 'user':
+            self.conditions['enabled'] = True
         except:
             self.PrintException()
             return False
