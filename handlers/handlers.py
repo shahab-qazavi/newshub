@@ -324,7 +324,16 @@ class News(BaseHandler):
         self.inputs = {
         }
         self.tokenless = True
-
+        self.conditions
+    def before_get(self):
+        try:
+#             if self.user_role == 'user':
+            self.conditions['text'] = {'$ne':''}
+        except:
+            self.PrintException()
+            return False
+        return True
+    
     def after_get_one(self, document):
         document = self.prepare_item(document)
         # if self.params.get('similars') is not None:
