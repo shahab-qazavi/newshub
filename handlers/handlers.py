@@ -330,7 +330,7 @@ class News(BaseHandler):
         # if self.params.get('similars') is not None:
         # TODO Hardcode!
         col_news = self.db['news']
-        result = self.prepare_dataset(col_news.find({'category_id': document['category_id'], 'text': {'$ne':''}, 'html': {'$ne':''}, 'text': {'$ne':None}},
+        result = self.prepare_dataset(col_news.find({'category_id': document['category_id'], 'text': {'$ne':''}},
                                                     {'image': 1, 'title': 1, 'summary': 1, 'create_date': 1, '_id':1}).limit(12).sort('create_date',-1))
         document['similar'] = result
         return document
