@@ -339,7 +339,7 @@ class News(BaseHandler):
         # if self.params.get('similars') is not None:
         # TODO Hardcode!
         col_news = self.db['news']
-        result = self.prepare_dataset(col_news.find({'category_id': document['category_id'], 'text': {'$ne':''},'summary': {'$ne':''}},
+        result = self.prepare_dataset(col_news.find({'category_id': document['category_id'], 'text': {'$ne':''}},
                                                     {'image': 1, 'title': 1, 'summary': 1, 'create_date': 1, '_id':1}).limit(12).sort('create_date',-1))
         document['similar'] = result
         return document
@@ -474,7 +474,7 @@ class Home(BaseHandler):
                 if self.params.get('header') == 'header':
                     print(1)
                     # print()
-                    news = self.prepare_dataset(col_news.find({'text': {'$ne': ''}}).limit(1).sort('create_date',-1))
+                    news = self.prepare_dataset(col_news.find({'text': {'$ne': ''}, ,'summary': {'$ne':''}}).limit(1).sort('create_date',-1))
                     print(news[0])
                     self.output['data']['item']['header_news'] = [{
                         'mongo_id': news[0]['id'],
