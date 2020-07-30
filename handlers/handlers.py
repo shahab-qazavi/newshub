@@ -474,7 +474,7 @@ class Home(BaseHandler):
                 if self.params.get('header') == 'header':
                     print(1)
                     # print()
-                    news = self.prepare_dataset(col_news.find({'text': {'$ne': ''}, ,'summary': {'$ne':''}}).limit(1).sort('create_date',-1))
+                    news = self.prepare_dataset(col_news.find({'text': {'$ne': ''},'summary': {'$ne':''}}).limit(1).sort('create_date',-1))
                     print(news[0])
                     self.output['data']['item']['header_news'] = [{
                         'mongo_id': news[0]['id'],
