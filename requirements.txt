@@ -12,6 +12,6 @@ requests==2.22.0
 six==1.14.0
 soupsieve==1.9.5
 tornado==6.0.3
-urllib3==1.25.8
+urllib3==1.26.5
 virtualenv==16.7.7
 virtualenv-clone==0.5.3
